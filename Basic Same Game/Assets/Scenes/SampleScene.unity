@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 403884594}
   - component: {fileID: 403884593}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: Same Game View
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -149,9 +149,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 403884592}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4638e85a2dad64d35a26bc731995c112, type: 3}
+  m_Script: {fileID: 11500000, guid: 0adb2d53308904fcca7916a31ae4f621, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _gridSize: {x: 10, y: 10}
+  _minimumMatchCount: 3
+  _tilePrefabs:
+  - {fileID: -2126642813242239000, guid: 3938ec4bcc74842a0867ddcaa7c5cf41, type: 3}
+  - {fileID: 8529094669750887470, guid: c29060030fb0a4ef8a719045f879f02f, type: 3}
+  - {fileID: 249670637421696722, guid: 02831a25e406748ba97830acf981d472, type: 3}
+  - {fileID: 1407966493294103882, guid: 7b5dd18b7ad5441159d2de8cd05c9927, type: 3}
+  - {fileID: 617525785940533649, guid: bd92e1d8354a44a0e8948db34ca23767, type: 3}
 --- !u!4 &403884594
 Transform:
   m_ObjectHideFlags: 0
@@ -219,7 +227,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 8
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
