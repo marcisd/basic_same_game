@@ -8,7 +8,7 @@ public class Test : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        GameGrid test = new GameGrid(new Vector2Int(10, 10), 5, 3);
+        SameGame test = new SameGame(new Vector2Int(10, 10), 5, 3);
         test.Initialize();
         Debug.Log("t");
     }

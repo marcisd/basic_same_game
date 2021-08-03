@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace MSD.BasicSameGame.GameLogic
 {
-	public class GameGrid
+	public class SameGame
 	{
 		private readonly Grid _grid;
 
@@ -13,7 +13,7 @@ namespace MSD.BasicSameGame.GameLogic
 
 		public bool IsInitialized { get; private set; }
 
-		public GameGrid(Vector2Int size, int tileTypeCount, int minimumMatchCount)
+		public SameGame(Vector2Int size, int tileTypeCount, int minimumMatchCount)
 		{
 			_grid = new Grid(size);
 			_tileMap = new TileMap(size, tileTypeCount);
@@ -44,7 +44,7 @@ namespace MSD.BasicSameGame.GameLogic
 			return false;
 		}
 
-		public int SelectMatchingTilesFromCell(Vector2Int cellPosition)
+		public int DestroyMatchingTilesFromCell(Vector2Int cellPosition)
 		{
 			int tileType = _tileMap[cellPosition];
 			HashSet<Vector2Int> matchingCells = new HashSet<Vector2Int>();
@@ -62,7 +62,7 @@ namespace MSD.BasicSameGame.GameLogic
 			return matchCount;
 		}
 
-		private void CheckMatchingAdjoinedTilesFromCell(Vector2Int cellPosition, in int tileType, ref HashSet<Vector2Int> matchingCells)
+		private void CheckMatchingAdjoinedTilesFromCell(in Vector2Int cellPosition, in int tileType, ref HashSet<Vector2Int> matchingCells)
 		{
 			if (_tileMap.IsEmptyCell(cellPosition)) return;
 
@@ -75,5 +75,17 @@ namespace MSD.BasicSameGame.GameLogic
 				CheckMatchingAdjoinedTilesFromCell(adjoinedCells.Current, in tileType, ref matchingCells);
 			}
 		}
+
+		protected virtual void DestroyMatchingTiles(in HashSet<Vector2Int> matchingTilesPositions)
+		{
+			foreach (Vector2Int cellPosition in matchingTilesPositions) {
+				_tileMap.RemoveTileForCell(cellPosition);
+			}
+		}
+
+		//protected virtual void FallFloatingTiles(out List<Vector2Int> originalPosition, out List<Vector2Int> newPosition)
+		//{
+
+		//}
 	}
 }

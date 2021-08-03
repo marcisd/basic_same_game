@@ -5,7 +5,7 @@ using UnityEngine;
 namespace MSD.BasicSameGame.GameLogic
 {
 	/// <summary>
-	/// Origin (0, 0) is at bottom left.
+	/// A 2D grid with origin <c>(0, 0)</c> at bottom left.
 	/// </summary>
 	public class Grid
 	{
@@ -21,11 +21,20 @@ namespace MSD.BasicSameGame.GameLogic
 			_size = new Vector2Int(horizontal, vertical);
 		}
 
+		/// <summary>
+		/// Checks if the given position is a valid cell inside the <see cref="Grid"/>.
+		/// </summary>
+		/// <param name="cellPosition">The cell position.</param>
+		/// <returns><c>true</c> if the given position is inside the <see cref="Grid"/>, <c>false</c> otherwise.</returns>
 		public bool IsValidCell(Vector2Int cellPosition)
 		{
 			return cellPosition.x >= 0 && cellPosition.x < _size.x && cellPosition.y >= 0 && cellPosition.y < _size.y;
 		}
 
+		/// <summary>
+		/// Performs the specified action on each cell of the <see cref="Grid"/> starting at origin <c>(0, 0)</c>.
+		/// </summary>
+		/// <param name="action">The action to perform on each cell of the <see cref="Grid"/>.</param>
 		public void ForEachCell(Action<Vector2Int> action)
 		{
 			for (int x = 0; x < _size.x; x++) {
@@ -35,6 +44,11 @@ namespace MSD.BasicSameGame.GameLogic
 			}
 		}
 
+		/// <summary>
+		/// Performs the specified action on each cells adjoined to the cell on the specified position. This uses the tar ball mnemonics.
+		/// </summary>
+		/// <param name="cellPosition">The cell position.</param>
+		/// <param name="action">The action to perform on the adjoined cells.</param>
 		public void ForEachAdjoinedCell(Vector2Int cellPosition, Action<Vector2Int> action)
 		{
 			if (!IsValidCell(cellPosition)) { return; }
@@ -60,6 +74,11 @@ namespace MSD.BasicSameGame.GameLogic
 			}
 		}
 
+		/// <summary>
+		/// Returns an enumerator of all the cells adjoined to the cell on the specified position. This uses the tar ball mnemonics.
+		/// </summary>
+		/// <param name="cellPosition">The cell position.</param>
+		/// <returns>The enumerator.</returns>
 		public IEnumerator<Vector2Int> AdjoinedCells(Vector2Int cellPosition)
 		{
 			if (!IsValidCell(cellPosition)) { yield break; }
