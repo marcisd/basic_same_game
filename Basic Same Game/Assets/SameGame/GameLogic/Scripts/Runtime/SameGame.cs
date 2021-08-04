@@ -12,13 +12,15 @@ namespace MSD.BasicSameGame.GameLogic
 
 		private readonly int _minimumMatchCount;
 
-		public event Action<List<Vector2Int>> OnMatchingTilesDestroyed = delegate { };
+		public event Action<Vector2Int, int> OnTileCreated = delegate { };
 
-		public event Action<List<Vector2Int>, List<Vector2Int>> OnFreeFallFloatingTiles = delegate { };
+		public event Action<Vector2Int> OnTileDestroyed = delegate { };
+
+		public event Action<Vector2Int, Vector2Int> OnTileMoved = delegate { };
 
 		public bool IsInitialized { get; private set; }
 
-		public TileMap TileMap => _tileMap;
+		public Vector2Int GridSize => _grid.Size;
 
 		public SameGame(Vector2Int size, int tileTypeCount, int minimumMatchCount)
 		{
@@ -36,6 +38,7 @@ namespace MSD.BasicSameGame.GameLogic
 
 			_grid.ForEachCell((position) => {
 				_tileMap.RandomizeTileForCell(position);
+				OnTileCreated.Invoke(position, _tileMap[position]);
 			});
 			IsInitialized = true;
 		}
@@ -90,8 +93,8 @@ namespace MSD.BasicSameGame.GameLogic
 		{
 			foreach (Vector2Int cellPosition in matchingTilesPositions) {
 				_tileMap.RemoveTileForCell(cellPosition);
+				OnTileDestroyed(cellPosition);
 			}
-			OnMatchingTilesDestroyed.Invoke(matchingTilesPositions);
 		}
 
 		private void FreeFallFloatingTiles()
@@ -109,26 +112,31 @@ namespace MSD.BasicSameGame.GameLogic
 
 			for (int i = 0; i < originalPosition.Count; i++) {
 				_tileMap.SwapTile(originalPosition[i], newPosition[i]);
+				OnTileMoved.Invoke(originalPosition[i], newPosition[i]);
 			}
-
-			OnFreeFallFloatingTiles.Invoke(originalPosition, newPosition);
 		}
 
 		private void FreeFallFloatingTilesForColumn(in int column, in int size, ref List<Vector2Int> originalPosition, ref List<Vector2Int> newPosition)
 		{
-			GetEmptyAndFloatingCellsForColumn(column, size, out List<int> floatingCells, out List<int> emptyCells);
+			GetEmptyAndFloatingCellsForColumn(column, size, out Queue<int> floatingCells, out List<int> emptyCells);
 
-			int emptyCellIndex = 0;
-			foreach (int floatingYPos in floatingCells) {
+			while (floatingCells.Count > 0) {
+				int floatingYPos = floatingCells.Dequeue();
+				int emptyYPos = emptyCells[0];
+
 				originalPosition.Add(new Vector2Int(column, floatingYPos));
-				int emptyYPos = emptyCells[emptyCellIndex++];
 				newPosition.Add(new Vector2Int(column, emptyYPos));
+
+				emptyCells.RemoveAt(0);
+				emptyCells.Add(floatingYPos);
+				emptyCells.Sort();
 			}
+
 		}
 
-		private void GetEmptyAndFloatingCellsForColumn(in int column, in int size, out List<int> floatingCells, out List<int> emptyCells)
+		private void GetEmptyAndFloatingCellsForColumn(in int column, in int size, out Queue<int> floatingCells, out List<int> emptyCells)
 		{
-			floatingCells = new List<int>();
+			floatingCells = new Queue<int>();
 			emptyCells = new List<int>();
 
 			for (int i = 0; i < size; i++) {
@@ -138,7 +146,7 @@ namespace MSD.BasicSameGame.GameLogic
 					emptyCells.Add(i);
 				} else {
 					if (emptyCells.Count > 0) {
-						floatingCells.Add(i);
+						floatingCells.Enqueue(i);
 					}
 				}
 			}

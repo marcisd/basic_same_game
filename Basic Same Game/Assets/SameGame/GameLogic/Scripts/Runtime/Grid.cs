@@ -42,22 +42,22 @@ namespace MSD.BasicSameGame.GameLogic
 			if (!IsValidCell(cellPosition)) { return; }
 
 			// Top
-			if (cellPosition.y < _size.y) {
+			if (cellPosition.y < _size.y - 1) {
 				action.Invoke(new Vector2Int(cellPosition.x, cellPosition.y + 1));
 			}
 
 			// Right
-			if (cellPosition.x < _size.x) {
+			if (cellPosition.x < _size.x - 1) {
 				action.Invoke(new Vector2Int(cellPosition.x + 1, cellPosition.y));
 			}
 
 			// Bottom
-			if (cellPosition.y >= 0) {
+			if (cellPosition.y > 0) {
 				action.Invoke(new Vector2Int(cellPosition.x, cellPosition.y - 1));
 			}
 
 			// Left
-			if (cellPosition.x >= 0) {
+			if (cellPosition.x > 0) {
 				action.Invoke(new Vector2Int(cellPosition.x - 1, cellPosition.y));
 			}
 		}
@@ -67,22 +67,22 @@ namespace MSD.BasicSameGame.GameLogic
 			if (!IsValidCell(cellPosition)) { yield break; }
 
 			// Top
-			if (cellPosition.y < _size.y) {
+			if (cellPosition.y < _size.y - 1) {
 				yield return new Vector2Int(cellPosition.x, cellPosition.y + 1);
 			}
 
 			// Right
-			if (cellPosition.x < _size.x) {
+			if (cellPosition.x < _size.x - 1) {
 				yield return new Vector2Int(cellPosition.x + 1, cellPosition.y);
 			}
 
 			// Bottom
-			if (cellPosition.y >= 0) {
+			if (cellPosition.y > 0) {
 				yield return new Vector2Int(cellPosition.x, cellPosition.y - 1);
 			}
 
 			// Left
-			if (cellPosition.x >= 0) {
+			if (cellPosition.x > 0) {
 				yield return new Vector2Int(cellPosition.x - 1, cellPosition.y);
 			}
 		}
