@@ -9,7 +9,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 156447666839618420, guid: 3938ec4bcc74842a0867ddcaa7c5cf41, type: 3}
       propertyPath: m_Name
-      value: Yellow Tile Variant
+      value: Orange Tile Variant
       objectReference: {fileID: 0}
     - target: {fileID: 5499438780802880723, guid: 3938ec4bcc74842a0867ddcaa7c5cf41, type: 3}
       propertyPath: m_RootOrder
@@ -57,11 +57,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5563845469762806920, guid: 3938ec4bcc74842a0867ddcaa7c5cf41, type: 3}
       propertyPath: m_Color.b
-      value: 0.13679248
+      value: 0.11372549
       objectReference: {fileID: 0}
     - target: {fileID: 5563845469762806920, guid: 3938ec4bcc74842a0867ddcaa7c5cf41, type: 3}
       propertyPath: m_Color.g
-      value: 0.6330447
+      value: 0.9019608
       objectReference: {fileID: 0}
     - target: {fileID: 5563845469762806920, guid: 3938ec4bcc74842a0867ddcaa7c5cf41, type: 3}
       propertyPath: m_Color.r
