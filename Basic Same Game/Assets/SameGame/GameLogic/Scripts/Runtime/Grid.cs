@@ -62,7 +62,7 @@ namespace MSD.BasicSameGame.GameLogic
 			}
 		}
 
-		public IEnumerator<Vector2Int> AdjoinedCells(Vector2Int cellPosition)
+		public IEnumerator<Vector2Int> GetAdjoinedCellsEnumerator(Vector2Int cellPosition)
 		{
 			if (!IsValidCell(cellPosition)) { yield break; }
 

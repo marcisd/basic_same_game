@@ -78,7 +78,9 @@ namespace MSD.BasicSameGame.View
 		private void OnTileSelected(Vector2Int cellPosition)
 		{
 			int tilesDestroyed = _sameGame.DestroyMatchingTilesFromCell(cellPosition);
-			Debug.Log(tilesDestroyed);
+			if (tilesDestroyed > 0 && !_sameGame.HasValidMoves()) {
+				Debug.LogError("Game end!");
+			}
 		}
 	}
 }

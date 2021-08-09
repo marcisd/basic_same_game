@@ -51,7 +51,27 @@ namespace MSD.BasicSameGame.GameLogic
 
 		public bool HasValidMoves()
 		{
-			// TODO
+			HashSet<Vector2Int> visitedCells = new HashSet<Vector2Int>();
+			List<Vector2Int> matchingCells = new List<Vector2Int>();
+
+			var nonEmptyCells = _tileMap.GetNonEmptyCellsEnumerator();
+			while (nonEmptyCells.MoveNext()) {
+				if (visitedCells.Contains(nonEmptyCells.Current)) { continue; }
+
+				int tileType = _tileMap[nonEmptyCells.Current];
+
+				matchingCells.Clear();
+				HashSet<Vector2Int> tempVisitedCells = new HashSet<Vector2Int>();
+				CheckMatchingAdjoinedTilesFromCellRecursively(nonEmptyCells.Current, tileType, ref tempVisitedCells, ref matchingCells);
+				
+				if (matchingCells.Count >= _minimumMatchCount) {
+					Debug.Log($"Match found: Count {matchingCells.Count}, Cell Pos {nonEmptyCells.Current}, Tile {tileType}");
+					return true;
+				}
+
+				visitedCells.UnionWith(matchingCells);
+			}
+
 			return false;
 		}
 
@@ -61,7 +81,7 @@ namespace MSD.BasicSameGame.GameLogic
 			HashSet<Vector2Int> visitedCells = new HashSet<Vector2Int>();
 			List<Vector2Int> matchingCells = new List<Vector2Int>();
 
-			CheckMatchingAdjoinedTilesFromCell(cellPosition, tileType, ref visitedCells, ref matchingCells);
+			CheckMatchingAdjoinedTilesFromCellRecursively(cellPosition, tileType, ref visitedCells, ref matchingCells);
 
 			if (matchingCells.Count < _minimumMatchCount) { return 0; }
 
@@ -72,7 +92,7 @@ namespace MSD.BasicSameGame.GameLogic
 			return matchingCells.Count;
 		}
 
-		private void CheckMatchingAdjoinedTilesFromCell(in Vector2Int cellPosition, in int tileType, ref HashSet<Vector2Int> visitedCells, ref List<Vector2Int> matchingCells)
+		private void CheckMatchingAdjoinedTilesFromCellRecursively(in Vector2Int cellPosition, in int tileType, ref HashSet<Vector2Int> visitedCells, ref List<Vector2Int> matchingCells)
 		{
 			if (_tileMap.IsEmptyCell(cellPosition)) { return; }
 
@@ -84,9 +104,9 @@ namespace MSD.BasicSameGame.GameLogic
 
 			matchingCells.Add(cellPosition);
 
-			IEnumerator<Vector2Int> adjoinedCells = _grid.AdjoinedCells(cellPosition);
+			IEnumerator<Vector2Int> adjoinedCells = _grid.GetAdjoinedCellsEnumerator(cellPosition);
 			while (adjoinedCells.MoveNext()) {
-				CheckMatchingAdjoinedTilesFromCell(adjoinedCells.Current, tileType, ref visitedCells, ref matchingCells);
+				CheckMatchingAdjoinedTilesFromCellRecursively(adjoinedCells.Current, tileType, ref visitedCells, ref matchingCells);
 			}
 		}
 
@@ -100,33 +120,17 @@ namespace MSD.BasicSameGame.GameLogic
 
 		private void ApplyGravity()
 		{
-			ApplyGravityVertically(out List<Vector2Int> originalPosition, out List<Vector2Int> newPosition);
+			ApplyGravityVertically(out List<Vector2Int> originalPositionVertical, out List<Vector2Int> newPositionVertical);
 
-			ApplyGravityHorizontally(out List<Vector2Int> originalPositionH, out List<Vector2Int> newPositionH);
+			ApplyGravityHorizontally(out List<Vector2Int> originalPositionHorizontal, out List<Vector2Int> newPositionHorizontal);
 
-			for (int i = 0; i < originalPosition.Count; i++) {
-				//foreach (var yyyOld in originalPosition) {
-				var yyyOld = originalPosition[i];
-				if (originalPositionH.Contains(yyyOld)) {
-					int idx = originalPositionH.IndexOf(yyyOld);
-					var xxx = newPositionH[idx];
+			MergeNewPositions(ref originalPositionVertical, ref newPositionVertical, in originalPositionHorizontal, in newPositionHorizontal);
 
-					var yyy = newPosition[i];
-					newPosition[i] = new Vector2Int(xxx.x, yyy.y);
+			Debug.Assert(originalPositionVertical.Count == newPositionVertical.Count, "The list `originalPosition` should have the same number of contents as the `newPosition` list.");
 
-					originalPositionH.RemoveAt(idx);
-					newPositionH.RemoveAt(idx);
-				}
-			}
-
-			originalPosition.AddRange(originalPositionH);
-			newPosition.AddRange(newPositionH);
-
-			Debug.Assert(originalPosition.Count == newPosition.Count, "The list `originalPosition` should have the same number of contents as the `newPosition` list.");
-
-			for (int i = 0; i < originalPosition.Count; i++) {
-				_tileMap.SwapTile(originalPosition[i], newPosition[i]);
-				OnTileMoved.Invoke(originalPosition[i], newPosition[i]);
+			for (int i = 0; i < originalPositionVertical.Count; i++) {
+				_tileMap.SwapTile(originalPositionVertical[i], newPositionVertical[i]);
+				OnTileMoved.Invoke(originalPositionVertical[i], newPositionVertical[i]);
 			}
 		}
 
@@ -157,6 +161,24 @@ namespace MSD.BasicSameGame.GameLogic
 			}
 		}
 
+		private void GetEmptyAndFloatingCellsForColumn(in int column, in int size, out Queue<int> floatingCells, out List<int> emptyCells)
+		{
+			floatingCells = new Queue<int>();
+			emptyCells = new List<int>();
+
+			for (int i = 0; i < size; i++) {
+				Vector2Int cellPos = new Vector2Int(column, i);
+
+				if (_tileMap.IsEmptyCell(cellPos)) {
+					emptyCells.Add(i);
+				} else {
+					if (emptyCells.Count > 0) {
+						floatingCells.Enqueue(i);
+					}
+				}
+			}
+		}
+
 		private void ApplyGravityHorizontally(out List<Vector2Int> originalPosition, out List<Vector2Int> newPosition)
 		{
 			originalPosition = new List<Vector2Int>();
@@ -184,24 +206,6 @@ namespace MSD.BasicSameGame.GameLogic
 			}
 		}
 
-		private void GetEmptyAndFloatingCellsForColumn(in int column, in int size, out Queue<int> floatingCells, out List<int> emptyCells)
-		{
-			floatingCells = new Queue<int>();
-			emptyCells = new List<int>();
-
-			for (int i = 0; i < size; i++) {
-				Vector2Int cellPos = new Vector2Int(column, i);
-
-				if (_tileMap.IsEmptyCell(cellPos)) {
-					emptyCells.Add(i);
-				} else {
-					if (emptyCells.Count > 0) {
-						floatingCells.Enqueue(i);
-					}
-				}
-			}
-		}
-
 		private void GetGapAndFillerColumns(out Queue<int> fillerColumns, out List<int> gapColumns)
 		{
 			fillerColumns = new Queue<int>();
@@ -217,6 +221,27 @@ namespace MSD.BasicSameGame.GameLogic
 					}
 				}
 			}
+		}
+
+		private void MergeNewPositions(ref List<Vector2Int> originalPositionVerticalMain, ref List<Vector2Int> newPositionVerticalMain,
+			in List<Vector2Int> originalPositionHorizontalAdditive, in List<Vector2Int> newPositionHorizontalAdditive)
+		{
+			for (int i = 0; i < originalPositionVerticalMain.Count; i++) {
+				Vector2Int origPos = originalPositionVerticalMain[i];
+				if (originalPositionHorizontalAdditive.Contains(origPos)) {
+					int idx = originalPositionHorizontalAdditive.IndexOf(origPos);
+					var newPosX = newPositionHorizontalAdditive[idx];
+
+					var newPosY = newPositionVerticalMain[i];
+					newPositionVerticalMain[i] = new Vector2Int(newPosX.x, newPosY.y);
+
+					originalPositionHorizontalAdditive.RemoveAt(idx);
+					newPositionHorizontalAdditive.RemoveAt(idx);
+				}
+			}
+
+			originalPositionVerticalMain.AddRange(originalPositionHorizontalAdditive);
+			newPositionVerticalMain.AddRange(newPositionHorizontalAdditive);
 		}
 	}
 }

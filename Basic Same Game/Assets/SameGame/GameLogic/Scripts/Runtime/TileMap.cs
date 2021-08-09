@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 using Random = UnityEngine.Random;
@@ -72,6 +73,17 @@ namespace MSD.BasicSameGame.GameLogic
                 if (_tiles[columnPosition, i] != 0) { return false; }
             }
             return true;
+        }
+
+        public IEnumerator<Vector2Int> GetNonEmptyCellsEnumerator()
+        {
+            for (int i = 0; i < _tiles.GetLength(0); i++) {
+                for (int j = 0; j < _tiles.GetLength(0); j++) {
+                    if (_tiles[i, j] != 0) {
+                        yield return new Vector2Int(i, j);
+                    }
+                }
+            }
         }
     }
 }
