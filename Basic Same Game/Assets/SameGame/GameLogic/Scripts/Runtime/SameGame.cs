@@ -51,6 +51,7 @@ namespace MSD.BasicSameGame.GameLogic
 
 		public bool HasValidMoves()
 		{
+			// TODO
 			return false;
 		}
 
@@ -66,7 +67,7 @@ namespace MSD.BasicSameGame.GameLogic
 
 			DestroyMatchingTiles(matchingCells);
 
-			FreeFallFloatingTiles();
+			ApplyGravity();
 
 			return matchingCells.Count;
 		}
@@ -97,16 +98,29 @@ namespace MSD.BasicSameGame.GameLogic
 			}
 		}
 
-		private void FreeFallFloatingTiles()
+		private void ApplyGravity()
 		{
-			List<Vector2Int> originalPosition = new List<Vector2Int>();
-			List<Vector2Int> newPosition = new List<Vector2Int>();
+			ApplyGravityVertically(out List<Vector2Int> originalPosition, out List<Vector2Int> newPosition);
 
-			for (int i = 0; i < _grid.Size.x; i++) {
-				FreeFallFloatingTilesForColumn(i, _grid.Size.y, ref originalPosition, ref newPosition);
+			ApplyGravityHorizontally(out List<Vector2Int> originalPositionH, out List<Vector2Int> newPositionH);
+
+			for (int i = 0; i < originalPosition.Count; i++) {
+				//foreach (var yyyOld in originalPosition) {
+				var yyyOld = originalPosition[i];
+				if (originalPositionH.Contains(yyyOld)) {
+					int idx = originalPositionH.IndexOf(yyyOld);
+					var xxx = newPositionH[idx];
+
+					var yyy = newPosition[i];
+					newPosition[i] = new Vector2Int(xxx.x, yyy.y);
+
+					originalPositionH.RemoveAt(idx);
+					newPositionH.RemoveAt(idx);
+				}
 			}
 
-			// horizontal shift
+			originalPosition.AddRange(originalPositionH);
+			newPosition.AddRange(newPositionH);
 
 			Debug.Assert(originalPosition.Count == newPosition.Count, "The list `originalPosition` should have the same number of contents as the `newPosition` list.");
 
@@ -116,7 +130,17 @@ namespace MSD.BasicSameGame.GameLogic
 			}
 		}
 
-		private void FreeFallFloatingTilesForColumn(in int column, in int size, ref List<Vector2Int> originalPosition, ref List<Vector2Int> newPosition)
+		private void ApplyGravityVertically(out List<Vector2Int> originalPosition, out List<Vector2Int> newPosition)
+		{
+			originalPosition = new List<Vector2Int>();
+			newPosition = new List<Vector2Int>();
+
+			for (int i = 0; i < _grid.Size.x; i++) {
+				ApplyGravityVerticallyForColumn(i, _grid.Size.y, ref originalPosition, ref newPosition);
+			}
+		}
+
+		private void ApplyGravityVerticallyForColumn(in int column, in int size, ref List<Vector2Int> originalPosition, ref List<Vector2Int> newPosition)
 		{
 			GetEmptyAndFloatingCellsForColumn(column, size, out Queue<int> floatingCells, out List<int> emptyCells);
 
@@ -131,7 +155,33 @@ namespace MSD.BasicSameGame.GameLogic
 				emptyCells.Add(floatingYPos);
 				emptyCells.Sort();
 			}
+		}
 
+		private void ApplyGravityHorizontally(out List<Vector2Int> originalPosition, out List<Vector2Int> newPosition)
+		{
+			originalPosition = new List<Vector2Int>();
+			newPosition = new List<Vector2Int>();
+
+			GetGapAndFillerColumns(out Queue<int> fillerColumns, out List<int> gapColumns);
+
+			while (fillerColumns.Count > 0) {
+				int fillerXPos = fillerColumns.Dequeue();
+				int gapYPos = gapColumns[0];
+
+				for (int i = 0; i < _grid.Size.y; i++) {
+					Vector2Int origPos = new Vector2Int(fillerXPos, i);
+					Vector2Int newPos = new Vector2Int(gapYPos, i);
+
+					if (_tileMap.IsEmptyCell(origPos)) { continue; }
+
+					originalPosition.Add(origPos);
+					newPosition.Add(newPos);
+				}
+
+				gapColumns.RemoveAt(0);
+				gapColumns.Add(fillerXPos);
+				gapColumns.Sort();
+			}
 		}
 
 		private void GetEmptyAndFloatingCellsForColumn(in int column, in int size, out Queue<int> floatingCells, out List<int> emptyCells)
@@ -147,6 +197,23 @@ namespace MSD.BasicSameGame.GameLogic
 				} else {
 					if (emptyCells.Count > 0) {
 						floatingCells.Enqueue(i);
+					}
+				}
+			}
+		}
+
+		private void GetGapAndFillerColumns(out Queue<int> fillerColumns, out List<int> gapColumns)
+		{
+			fillerColumns = new Queue<int>();
+			gapColumns = new List<int>();
+
+			for (int i = 0; i < _grid.Size.x; i++) {
+
+				if (_tileMap.IsEmptyColumn(i)) {
+					gapColumns.Add(i);
+				} else {
+					if (gapColumns.Count > 0) {
+						fillerColumns.Enqueue(i);
 					}
 				}
 			}

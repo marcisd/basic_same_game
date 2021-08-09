@@ -65,6 +65,14 @@ namespace MSD.BasicSameGame.GameLogic
         {
             return this[cellPosition] == 0;
         }
+
+        public bool IsEmptyColumn(int columnPosition)
+        {
+            for (int i = 0; i < _tiles.GetLength(1); i++) {
+                if (_tiles[columnPosition, i] != 0) { return false; }
+            }
+            return true;
+        }
     }
 }
 

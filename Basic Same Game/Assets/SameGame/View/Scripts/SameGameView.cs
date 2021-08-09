@@ -14,17 +14,17 @@ namespace MSD.BasicSameGame.View
 		private int _minimumMatchCount = 3;
 
 		[SerializeField]
-		private List<Tile> _tilePrefabs;
+		private List<TileController> _tilePrefabs;
 
 		private SameGame _sameGame;
 
-		private Dictionary<Vector2Int, Tile> _activeTiles = new Dictionary<Vector2Int, Tile>();
+		private Dictionary<Vector2Int, TileController> _activeTiles = new Dictionary<Vector2Int, TileController>();
 
 		public Vector2Int GridSize => _gridSize;
 
 		public void Restart()
 		{
-			foreach (KeyValuePair<Vector2Int, Tile> tile in _activeTiles) {
+			foreach (KeyValuePair<Vector2Int, TileController> tile in _activeTiles) {
 				GameObject.Destroy(tile.Value.gameObject);
 			}
 			_activeTiles.Clear();
@@ -48,20 +48,19 @@ namespace MSD.BasicSameGame.View
 		private void OnTileCreated(Vector2Int cellPosition, int tileIndex)
 		{
 			// TODO: implement recycler
-			Tile tile = GameObject.Instantiate(_tilePrefabs[tileIndex - 1]);
-			Vector3 position = new Vector3(cellPosition.x, cellPosition.y, 0);
-			tile.transform.position = position;
+			TileController tile = GameObject.Instantiate(_tilePrefabs[tileIndex - 1]);
 			tile.transform.SetParent(transform, true);
-			_activeTiles.Add(cellPosition, tile);
+			tile.SpawnAtPosition(cellPosition);
+			tile.OnTileSelected += OnTileSelected;
 
-			tile.TilePosition = cellPosition;
-			tile.OnTileSelected = OnTileSelected;
+			_activeTiles.Add(cellPosition, tile);
 		}
 
 		private void OnTileDestroyed(Vector2Int cellPosition)
 		{
 			// TODOL implement recycler
-			Tile tile = _activeTiles[cellPosition];
+			TileController tile = _activeTiles[cellPosition];
+			tile.OnTileSelected -= OnTileSelected;
 			GameObject.Destroy(tile.gameObject);
 
 			_activeTiles.Remove(cellPosition);
@@ -69,10 +68,8 @@ namespace MSD.BasicSameGame.View
 
 		private void OnTileMoved(Vector2Int originalCellPosition, Vector2Int newCellPosition)
 		{
-			Tile tile = _activeTiles[originalCellPosition];
-			Vector3 position = new Vector3(newCellPosition.x, newCellPosition.y, 0);
-			tile.transform.position = position;
-			tile.TilePosition = newCellPosition;
+			TileController tile = _activeTiles[originalCellPosition];
+			tile.MoveToPosition(newCellPosition);
 
 			_activeTiles.Remove(originalCellPosition);
 			_activeTiles.Add(newCellPosition, tile);

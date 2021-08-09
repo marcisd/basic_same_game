@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.oss.leantween": {
+      "version": "https://github.com/JohannesDeml/LeanTween.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "71df5d87d2cc59aaa9313ecace09dc76e46a491b"
+    },
     "com.unity.2d.animation": {
       "version": "5.0.6",
       "depth": 0,
@@ -37,17 +44,6 @@
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
-    "com.unity.2d.psdimporter": {
-      "version": "4.1.0",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.2d.common": "4.0.3",
-        "com.unity.2d.animation": "5.0.6",
-        "com.unity.2d.sprite": "1.0.0"
-      },
-      "url": "https://packages.unity.com"
-    },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
       "depth": 0,
@@ -72,29 +68,11 @@
       "source": "builtin",
       "dependencies": {}
     },
-    "com.unity.collab-proxy": {
-      "version": "1.7.1",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "2.0.0"
-      },
-      "url": "https://packages.unity.com"
-    },
     "com.unity.ext.nunit": {
       "version": "1.0.6",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.ide.rider": {
-      "version": "2.0.7",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.unity.test-framework": "1.1.1"
-      },
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.visualstudio": {
@@ -115,13 +93,6 @@
     },
     "com.unity.mathematics": {
       "version": "1.1.0",
-      "depth": 1,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.nuget.newtonsoft-json": {
-      "version": "2.0.0",
       "depth": 1,
       "source": "registry",
       "dependencies": {},

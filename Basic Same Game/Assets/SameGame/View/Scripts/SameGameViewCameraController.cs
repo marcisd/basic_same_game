@@ -24,7 +24,6 @@ namespace MSD.BasicSameGame.View
 
             Vector3 origCamPos = _camera.transform.position;
             Vector3 position = new Vector3((size.x * 0.5f) - 0.5f, (size.y * 0.5f) - 0.5f, origCamPos.z);
-            
             _camera.transform.position = position;
         }
 
