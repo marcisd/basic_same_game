@@ -3,7 +3,7 @@ using UnityEngine;
 namespace MSD.BasicSameGame.View
 {
     [RequireComponent(typeof(SameGameView))]
-    public class SameGameViewCameraController : MonoBehaviour
+    public class SameGameViewCameraInitializer : MonoBehaviour
     {
         [SerializeField]
         private Camera _camera;
