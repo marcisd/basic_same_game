@@ -1,0 +1,11 @@
+{
+  "name": "com.marcisd.modules.object-pool",
+  "version": "0.0.1",
+  "displayName": "MSD \u2022 Modules \u2022 Object Pool",
+  "unity": "2020.2",
+  "author": {
+    "name": "Marci San Diego",
+    "email": "marcisandiego@gmail.com",
+    "url": "https://marcisd.com/"
+  }
+}
