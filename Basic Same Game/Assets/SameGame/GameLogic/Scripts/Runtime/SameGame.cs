@@ -4,13 +4,15 @@ using UnityEngine;
 
 namespace MSD.BasicSameGame.GameLogic
 {
-	public class SameGame
+	public partial class SameGame
 	{
 		private readonly Grid _grid;
 
 		private readonly TileMap _tileMap;
 
 		private readonly int _minimumMatchCount;
+
+		private readonly MatchCollector _matchCollector = new MatchCollector();
 
 		public event Action<Vector2Int, int> OnTileCreated = delegate { };
 
@@ -26,10 +28,19 @@ namespace MSD.BasicSameGame.GameLogic
 		{
 			_grid = new Grid(size);
 			_tileMap = new TileMap(size, tileTypeCount);
-
 			_minimumMatchCount = minimumMatchCount;
-			
+
 			IsInitialized = false;
+		}
+
+		public SameGame(SameGame sameGame)
+		{
+			_grid = sameGame._grid;
+			_tileMap = sameGame._tileMap.Clone();
+			_minimumMatchCount = sameGame._minimumMatchCount;
+			_matchCollector = new MatchCollector(sameGame._matchCollector);
+
+			IsInitialized = sameGame.IsInitialized;
 		}
 
 		public void Initialize()
@@ -40,17 +51,39 @@ namespace MSD.BasicSameGame.GameLogic
 				_tileMap.RandomizeTileForCell(position);
 				OnTileCreated.Invoke(position, _tileMap[position]);
 			});
+
+			EvaluateMatches();
+
 			IsInitialized = true;
 		}
 
 		public void Reset()
 		{
-			IsInitialized = false;
 			_tileMap.Clear();
+			IsInitialized = false;
 		}
 
-		public bool HasValidMoves()
+		public bool HasValidMoves() => _matchCollector.HasValidMoves;
+
+		public Vector2Int[][] GetMatchingCells() => _matchCollector.Groups;
+
+		public int DestroyMatchingTilesFromCell(Vector2Int cellPosition)
 		{
+			if (!_matchCollector.TryExtractMatchingGroup(cellPosition, out List<Vector2Int> matchingCells)) { return 0; }
+
+			DestroyMatchingTiles(matchingCells);
+
+			ApplyGravity();
+
+			EvaluateMatches();
+
+			return matchingCells.Count;
+		}
+
+		private void EvaluateMatches()
+		{
+			_matchCollector.Reset();
+
 			HashSet<Vector2Int> visitedCells = new HashSet<Vector2Int>();
 			List<Vector2Int> matchingCells = new List<Vector2Int>();
 
@@ -63,36 +96,17 @@ namespace MSD.BasicSameGame.GameLogic
 				matchingCells.Clear();
 				HashSet<Vector2Int> tempVisitedCells = new HashSet<Vector2Int>();
 				CheckMatchingAdjoinedTilesFromCellRecursively(nonEmptyCells.Current, tileType, ref tempVisitedCells, ref matchingCells);
-				
+
 				if (matchingCells.Count >= _minimumMatchCount) {
-					Debug.Log($"Match found: Count {matchingCells.Count}, Cell Pos {nonEmptyCells.Current}, Tile {tileType}");
-					return true;
+					_matchCollector.RegisterMatch(matchingCells);
 				}
 
 				visitedCells.UnionWith(matchingCells);
 			}
-
-			return false;
 		}
 
-		public int DestroyMatchingTilesFromCell(Vector2Int cellPosition)
-		{
-			int tileType = _tileMap[cellPosition];
-			HashSet<Vector2Int> visitedCells = new HashSet<Vector2Int>();
-			List<Vector2Int> matchingCells = new List<Vector2Int>();
-
-			CheckMatchingAdjoinedTilesFromCellRecursively(cellPosition, tileType, ref visitedCells, ref matchingCells);
-
-			if (matchingCells.Count < _minimumMatchCount) { return 0; }
-
-			DestroyMatchingTiles(matchingCells);
-
-			ApplyGravity();
-
-			return matchingCells.Count;
-		}
-
-		private void CheckMatchingAdjoinedTilesFromCellRecursively(in Vector2Int cellPosition, in int tileType, ref HashSet<Vector2Int> visitedCells, ref List<Vector2Int> matchingCells)
+		private void CheckMatchingAdjoinedTilesFromCellRecursively(in Vector2Int cellPosition, in int tileType,
+			ref HashSet<Vector2Int> visitedCells, ref List<Vector2Int> matchingCells)
 		{
 			if (_tileMap.IsEmptyCell(cellPosition)) { return; }
 
@@ -212,7 +226,6 @@ namespace MSD.BasicSameGame.GameLogic
 			gapColumns = new List<int>();
 
 			for (int i = 0; i < _grid.Size.x; i++) {
-
 				if (_tileMap.IsEmptyColumn(i)) {
 					gapColumns.Add(i);
 				} else {

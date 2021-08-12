@@ -7,7 +7,7 @@ namespace MSD.BasicSameGame.GameLogic
 	/// <summary>
 	/// A 2D grid with origin <c>(0, 0)</c> at bottom left.
 	/// </summary>
-	public class Grid
+	public struct Grid
 	{
 		private readonly Vector2Int _size;
 

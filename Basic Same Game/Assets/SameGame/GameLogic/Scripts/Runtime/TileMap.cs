@@ -85,6 +85,11 @@ namespace MSD.BasicSameGame.GameLogic
                 }
             }
         }
+
+        public TileMap Clone()
+        {
+            return (TileMap)MemberwiseClone();
+        }
     }
 }
 
