@@ -4,6 +4,7 @@ using UnityEngine;
 namespace MSD.BasicSameGame.View
 {
 	using GameLogic;
+	using Modules.ObjectPooling;
 
 	public class SameGameView : MonoBehaviour
 	{
@@ -16,6 +17,10 @@ namespace MSD.BasicSameGame.View
 		[SerializeField]
 		private List<TileController> _tilePrefabs;
 
+		[Space]
+		[SerializeField]
+		private ObjectPool _recycler;
+
 		private SameGame _sameGame;
 
 		private Dictionary<Vector2Int, TileController> _activeTiles = new Dictionary<Vector2Int, TileController>();
@@ -25,7 +30,7 @@ namespace MSD.BasicSameGame.View
 		public void Restart()
 		{
 			foreach (KeyValuePair<Vector2Int, TileController> tile in _activeTiles) {
-				GameObject.Destroy(tile.Value.gameObject);
+				DespawnTile(tile.Value);
 			}
 			_activeTiles.Clear();
 			_sameGame.Reset();
@@ -47,22 +52,17 @@ namespace MSD.BasicSameGame.View
 
 		private void OnTileCreated(Vector2Int cellPosition, int tileIndex)
 		{
-			// TODO: implement recycler
-			TileController tile = GameObject.Instantiate(_tilePrefabs[tileIndex - 1]);
-			tile.transform.SetParent(transform, true);
+			TileController tile = SpawnTile(tileIndex);
 			tile.SpawnAtPosition(cellPosition);
 			tile.OnTileSelected += OnTileSelected;
-
 			_activeTiles.Add(cellPosition, tile);
 		}
 
 		private void OnTileDestroyed(Vector2Int cellPosition)
 		{
-			// TODOL implement recycler
 			TileController tile = _activeTiles[cellPosition];
 			tile.OnTileSelected -= OnTileSelected;
-			GameObject.Destroy(tile.gameObject);
-
+			DespawnTile(tile);
 			_activeTiles.Remove(cellPosition);
 		}
 
@@ -70,7 +70,6 @@ namespace MSD.BasicSameGame.View
 		{
 			TileController tile = _activeTiles[originalCellPosition];
 			tile.MoveToPosition(newCellPosition);
-
 			_activeTiles.Remove(originalCellPosition);
 			_activeTiles.Add(newCellPosition, tile);
 		}
@@ -80,6 +79,26 @@ namespace MSD.BasicSameGame.View
 			int tilesDestroyed = _sameGame.DestroyMatchingTilesFromCell(cellPosition);
 			if (tilesDestroyed > 0 && !_sameGame.HasValidMoves()) {
 				Debug.LogError("Game end!");
+			}
+		}
+
+		private TileController SpawnTile(int tileIndex)
+		{
+			if (_recycler != null) {
+				return _recycler.Spawn(_tilePrefabs[tileIndex - 1], transform);
+			} else {
+				TileController tile = Instantiate(_tilePrefabs[tileIndex - 1]);
+				tile.transform.SetParent(transform, false);
+				return tile;
+			}
+		}
+
+		private void DespawnTile(TileController tile)
+		{
+			if (_recycler != null) {
+				_recycler.Despawn(tile);
+			} else {
+				Destroy(tile.gameObject);
 			}
 		}
 	}
