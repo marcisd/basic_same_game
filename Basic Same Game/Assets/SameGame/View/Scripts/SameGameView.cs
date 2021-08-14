@@ -42,12 +42,15 @@ namespace MSD.BasicSameGame.View
 			_sameGame = new SameGame(_gridSize, _tilePrefabs.Count, _minimumMatchCount);
 			_sameGame.OnTileCreated += OnTileCreated;
 			_sameGame.OnTileDestroyed += OnTileDestroyed;
-			_sameGame.OnTileMoved += OnTileMoved;
+			_sameGame.OnTileMoved += OnTileMoved;	
 		}
 
 		private void Start()
 		{
 			_sameGame.Initialize();
+
+			AI.MonteCarloTreeSearch ai = new AI.MonteCarloTreeSearch(_sameGame);
+			ai.PerformSearch(3);
 		}
 
 		private void OnTileCreated(Vector2Int cellPosition, int tileIndex)
