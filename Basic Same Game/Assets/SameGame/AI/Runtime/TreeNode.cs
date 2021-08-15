@@ -40,7 +40,9 @@ namespace MSD.BasicSameGame.AI
 
 		public IReadOnlyList<TreeNode> Children => _children;
 
-		internal PlayoutInfo Playout { get; private set; }
+		private PlayoutInfo? Playout { get; set; }
+
+		private TreeNode BestChild { get; set; }
 
 		public TreeNode(SameGame sameGame)
 		{
@@ -84,7 +86,18 @@ namespace MSD.BasicSameGame.AI
 			return TraverseNodeForLeavesRecursively(this);
 		}
 
-		private IEnumerable<TreeNode> TraverseNodeForLeavesRecursively(TreeNode node)
+		public static void BackPropagate(TreeNode leafNode)
+		{
+			if (leafNode == null) { throw new ArgumentNullException(nameof(leafNode)); }
+
+			if (!leafNode.IsLeafNode) { throw new ArgumentException("Must be a leaf node!", nameof(leafNode)); }
+
+			if (leafNode.Playout == null) { throw new ArgumentException("Leaf node must have a playout information to backpropagate!"); }
+
+			BackPropagateRecursively(leafNode);
+		}
+
+		private static IEnumerable<TreeNode> TraverseNodeForLeavesRecursively(TreeNode node)
 		{
 			if (node.IsTerminalNode) {
 				yield break;
@@ -99,6 +112,27 @@ namespace MSD.BasicSameGame.AI
 					}
 				}
 			}
+		}
+
+		private static void BackPropagateRecursively(TreeNode node)
+		{
+			if (node.IsRootNode) { return; }
+
+			if (node.Parent.TryUpdateBestChild(node)) {
+				BackPropagateRecursively(node.Parent);
+			}
+		}
+
+		private bool TryUpdateBestChild(TreeNode child)
+		{
+			if (!_children.Contains(child)) { throw new ArgumentException("Not a child of this node.", nameof(child)); }
+
+			if (BestChild == null || BestChild.Playout.Value.Score > child.Playout.Value.Score) {
+				BestChild = child;
+				Playout = child.Playout;
+				return true;
+			}
+			return false;
 		}
 	}
 }

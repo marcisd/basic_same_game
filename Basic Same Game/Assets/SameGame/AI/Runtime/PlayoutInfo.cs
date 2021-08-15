@@ -1,7 +1,8 @@
+using System;
 
 namespace MSD.BasicSameGame.AI
 {
-	internal class PlayoutInfo
+	internal struct PlayoutInfo : IEquatable<PlayoutInfo>
 	{
 		public int TotalMoves { get; }
 		public int RemainingTilesCount { get; }
@@ -12,6 +13,11 @@ namespace MSD.BasicSameGame.AI
 		{
 			TotalMoves = totalMoves;
 			RemainingTilesCount = remainingTilesCount;
+		}
+
+		public bool Equals(PlayoutInfo other)
+		{
+			return TotalMoves == other.TotalMoves && RemainingTilesCount == other.RemainingTilesCount;
 		}
 	}
 
