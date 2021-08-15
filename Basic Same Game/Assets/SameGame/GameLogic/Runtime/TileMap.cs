@@ -6,7 +6,7 @@ using Random = UnityEngine.Random;
 
 namespace MSD.BasicSameGame.GameLogic
 {
-    public class TileMap
+    internal class TileMap
     {
         private readonly int _tileTypeCount;
 
@@ -27,6 +27,11 @@ namespace MSD.BasicSameGame.GameLogic
 
         public TileMap(int horizontal, int vertical, int tileTypeCount)
             : this (new Vector2Int(horizontal, vertical), tileTypeCount) { }
+
+        public TileMap Clone()
+        {
+            return (TileMap)MemberwiseClone();
+        }
 
         public void Clear()
         {
@@ -78,7 +83,7 @@ namespace MSD.BasicSameGame.GameLogic
         public IEnumerator<Vector2Int> GetNonEmptyCellsEnumerator()
         {
             for (int i = 0; i < _tiles.GetLength(0); i++) {
-                for (int j = 0; j < _tiles.GetLength(0); j++) {
+                for (int j = 0; j < _tiles.GetLength(1); j++) {
                     if (_tiles[i, j] != 0) {
                         yield return new Vector2Int(i, j);
                     }
@@ -86,10 +91,19 @@ namespace MSD.BasicSameGame.GameLogic
             }
         }
 
-        public TileMap Clone()
+        public int GetNonEmptyCellsCount()
         {
-            return (TileMap)MemberwiseClone();
+            int counter = 0;
+            for (int i = 0; i < _tiles.GetLength(0); i++) {
+                for (int j = 0; j < _tiles.GetLength(1); j++) {
+                    if (_tiles[i, j] != 0) {
+                        counter++;
+                    }
+                }
+            }
+            return counter;
         }
+
     }
 }
 

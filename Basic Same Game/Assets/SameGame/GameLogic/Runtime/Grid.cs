@@ -7,31 +7,29 @@ namespace MSD.BasicSameGame.GameLogic
 	/// <summary>
 	/// A 2D grid with origin <c>(0, 0)</c> at bottom left.
 	/// </summary>
-	public struct Grid
+	internal struct Grid
 	{
-		private readonly Vector2Int _size;
+		public Vector2Int Size { get; }
 
 		public Grid(Vector2Int size)
 		{
-			_size = size;
+			Size = size;
 		}
 
 		public Grid(int horizontal, int vertical)
 		{
-			_size = new Vector2Int(horizontal, vertical);
+			Size = new Vector2Int(horizontal, vertical);
 		}
-
-		public Vector2Int Size => _size;
 
 		public bool IsValidCell(Vector2Int cellPosition)
 		{
-			return cellPosition.x >= 0 && cellPosition.x < _size.x && cellPosition.y >= 0 && cellPosition.y < _size.y;
+			return cellPosition.x >= 0 && cellPosition.x < Size.x && cellPosition.y >= 0 && cellPosition.y < Size.y;
 		}
 
 		public void ForEachCell(Action<Vector2Int> action)
 		{
-			for (int x = 0; x < _size.x; x++) {
-				for (int y = 0; y < _size.y; y++) {
+			for (int x = 0; x < Size.x; x++) {
+				for (int y = 0; y < Size.y; y++) {
 					action.Invoke(new Vector2Int(x, y));
 				}
 			}
@@ -42,12 +40,12 @@ namespace MSD.BasicSameGame.GameLogic
 			if (!IsValidCell(cellPosition)) { return; }
 
 			// Top
-			if (cellPosition.y < _size.y - 1) {
+			if (cellPosition.y < Size.y - 1) {
 				action.Invoke(new Vector2Int(cellPosition.x, cellPosition.y + 1));
 			}
 
 			// Right
-			if (cellPosition.x < _size.x - 1) {
+			if (cellPosition.x < Size.x - 1) {
 				action.Invoke(new Vector2Int(cellPosition.x + 1, cellPosition.y));
 			}
 
@@ -67,12 +65,12 @@ namespace MSD.BasicSameGame.GameLogic
 			if (!IsValidCell(cellPosition)) { yield break; }
 
 			// Top
-			if (cellPosition.y < _size.y - 1) {
+			if (cellPosition.y < Size.y - 1) {
 				yield return new Vector2Int(cellPosition.x, cellPosition.y + 1);
 			}
 
 			// Right
-			if (cellPosition.x < _size.x - 1) {
+			if (cellPosition.x < Size.x - 1) {
 				yield return new Vector2Int(cellPosition.x + 1, cellPosition.y);
 			}
 

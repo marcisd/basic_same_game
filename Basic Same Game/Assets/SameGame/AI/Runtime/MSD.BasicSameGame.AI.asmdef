@@ -1,0 +1,16 @@
+{
+    "name": "MSD.BasicSameGame.AI",
+    "rootNamespace": "",
+    "references": [
+        "GUID:5bb7fb026fe31405bb42ce7e42c34355"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MSD.BasicSameGame.GameLogic
 {
-	public partial class SameGame
+	public class SameGame
 	{
 		private readonly Grid _grid;
 
@@ -21,6 +21,8 @@ namespace MSD.BasicSameGame.GameLogic
 		public event Action<Vector2Int, Vector2Int> OnTileMoved = delegate { };
 
 		public bool IsInitialized { get; private set; }
+
+		public int TileCount { get; private set; }
 
 		public Vector2Int GridSize => _grid.Size;
 
@@ -52,7 +54,7 @@ namespace MSD.BasicSameGame.GameLogic
 				OnTileCreated.Invoke(position, _tileMap[position]);
 			});
 
-			EvaluateMatches();
+			CalculateTileDetails();
 
 			IsInitialized = true;
 		}
@@ -60,7 +62,9 @@ namespace MSD.BasicSameGame.GameLogic
 		public void Reset()
 		{
 			_tileMap.Clear();
+			_matchCollector.Reset();
 			IsInitialized = false;
+			TileCount = 0;
 		}
 
 		public bool HasValidMoves() => _matchCollector.HasValidMoves;
@@ -75,9 +79,15 @@ namespace MSD.BasicSameGame.GameLogic
 
 			ApplyGravity();
 
-			EvaluateMatches();
+			CalculateTileDetails();
 
 			return matchingCells.Count;
+		}
+
+		private void CalculateTileDetails()
+		{
+			EvaluateMatches();
+			TileCount = _tileMap.GetNonEmptyCellsCount();
 		}
 
 		private void EvaluateMatches()
