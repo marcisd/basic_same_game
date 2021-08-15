@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 
 namespace MSD.BasicSameGame.View
 {
-	using Modules.ObjectPooling;
+	using Modules.ObjectPool;
 
 	public class TileController : MonoBehaviour, IPointerDownHandler, IPoolable
 	{

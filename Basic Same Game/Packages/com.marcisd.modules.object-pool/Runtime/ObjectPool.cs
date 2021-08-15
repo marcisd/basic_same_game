@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace MSD.Modules.ObjectPooling
+namespace MSD.Modules.ObjectPool
 {
     public class ObjectPool : MonoBehaviour
     {

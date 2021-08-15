@@ -4,7 +4,7 @@ using UnityEngine;
 namespace MSD.BasicSameGame.View
 {
 	using GameLogic;
-	using Modules.ObjectPooling;
+	using Modules.ObjectPool;
 
 	public class SameGameView : MonoBehaviour
 	{

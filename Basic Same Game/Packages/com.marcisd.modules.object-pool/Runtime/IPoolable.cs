@@ -1,6 +1,6 @@
 using System;
 
-namespace MSD.Modules.ObjectPooling
+namespace MSD.Modules.ObjectPool
 {
     public interface IPoolable
     {
