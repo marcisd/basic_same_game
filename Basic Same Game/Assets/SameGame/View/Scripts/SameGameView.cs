@@ -1,5 +1,8 @@
+using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace MSD.BasicSameGame.View
 {
@@ -21,20 +24,34 @@ namespace MSD.BasicSameGame.View
 		[SerializeField]
 		private ObjectPool _recycler;
 
+		[Space]
+		[SerializeField]
+		private UnityEvent _onGameStart;
+
+		[Space]
+		[SerializeField]
+		private UnityEvent _onGameOver;
+
 		private SameGame _sameGame;
 
 		private Dictionary<Vector2Int, TileController> _activeTiles = new Dictionary<Vector2Int, TileController>();
 
 		public Vector2Int GridSize => _gridSize;
 
-		public void Restart()
+		public void GameStart()
 		{
-			foreach (KeyValuePair<Vector2Int, TileController> tile in _activeTiles) {
-				DespawnTile(tile.Value);
-			}
-			_activeTiles.Clear();
-			_sameGame.Reset();
 			_sameGame.Initialize();
+			_onGameStart.Invoke();
+		}
+
+		public void GameReset()
+		{
+			GameReset(null);
+		}
+
+		public void GameRestart()
+		{
+			GameReset(GameStart);
 		}
 
 		private void Awake()
@@ -47,10 +64,31 @@ namespace MSD.BasicSameGame.View
 
 		private void Start()
 		{
-			_sameGame.Initialize();
+			GameStart();
+		}
 
-			AI.MonteCarloTreeSearch ai = new AI.MonteCarloTreeSearch(_sameGame);
-			ai.PerformSearch(3);
+		private void OnValidate()
+		{
+			_gridSize = new Vector2Int(Mathf.Clamp(_gridSize.x, 1, 20), Mathf.Clamp(_gridSize.y, 1, 20));
+		}
+
+		private void GameReset(Action onComplete)
+		{
+			void FinishedDespawning()
+			{
+				_activeTiles.Clear();
+				_sameGame.Reset();
+				onComplete?.Invoke();
+			}
+
+			KeyValuePair<Vector2Int, TileController> last = _activeTiles.Last();
+			foreach (KeyValuePair<Vector2Int, TileController> tile in _activeTiles) {
+				if (last.Equals(tile)) {
+					DespawnTile(tile.Value, FinishedDespawning);
+				} else {
+					DespawnTile(tile.Value, null);
+				}
+			}
 		}
 
 		private void OnTileCreated(Vector2Int cellPosition, int tileIndex)
@@ -65,7 +103,7 @@ namespace MSD.BasicSameGame.View
 		{
 			TileController tile = _activeTiles[cellPosition];
 			tile.OnTileSelected -= OnTileSelected;
-			DespawnTile(tile);
+			DespawnTile(tile, null);
 			_activeTiles.Remove(cellPosition);
 		}
 
@@ -81,7 +119,7 @@ namespace MSD.BasicSameGame.View
 		{
 			int tilesDestroyed = _sameGame.DestroyMatchingTilesFromCell(cellPosition);
 			if (tilesDestroyed > 0 && !_sameGame.HasValidMoves()) {
-				Debug.LogError("Game end!");
+				_onGameOver.Invoke();
 			}
 		}
 
@@ -96,10 +134,10 @@ namespace MSD.BasicSameGame.View
 			}
 		}
 
-		private void DespawnTile(TileController tile)
+		private void DespawnTile(TileController tile, Action onDespawn)
 		{
 			if (_recycler != null) {
-				_recycler.Despawn(tile);
+				_recycler.Despawn(tile, onDespawn);
 			} else {
 				Destroy(tile.gameObject);
 			}

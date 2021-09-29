@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,11 +17,12 @@ namespace MSD.Modules.ObjectPool
 
         public T Spawn<T>(T prefab, Transform parent) where T : MonoBehaviour, IPoolable
         {
-            var pool = PoolForPrefab(prefab.transform);
+			List<Transform> pool = PoolForPrefab(prefab.transform);
             T output;
             if (pool.Count > 0) {
                 Transform instance = pool[0];
                 pool.Remove(instance);
+                AddInstanceToLookup(prefab.transform, instance);
                 output = instance.GetComponent<T>();
             } else {
                 T instance = Instantiate(prefab);
@@ -34,17 +36,25 @@ namespace MSD.Modules.ObjectPool
 
         public void Despawn<T>(T instance) where T : MonoBehaviour, IPoolable
         {
+            Despawn(instance, null);
+        }
+
+        public void Despawn<T>(T instance, Action onDespawn) where T : MonoBehaviour, IPoolable
+        {
+            if (gameObject == null || !gameObject.activeInHierarchy) return;
+
             if (TryGetInstanceLookupValue(instance.transform, out int prefabId)) {
-                if (_poolDictionary.TryGetValue(prefabId, out List<Transform> pool)
-                    && gameObject != null && gameObject.activeInHierarchy) {
-                    instance.OnBeforeDespawn(() => {
-                        pool.Add(instance.transform);
-                        instance.transform.SetParent(transform, false);
-                        RemoveInstanceFromLookup(instance.transform);
-                    });
-                    return;
-                }
-            }
+				if (_poolDictionary.TryGetValue(prefabId, out List<Transform> pool)) {
+					instance.OnBeforeDespawn(() => {
+						pool.Add(instance.transform);
+						instance.transform.SetParent(transform, false);
+						RemoveInstanceFromLookup(instance.transform);
+
+                        onDespawn?.Invoke();
+					});
+					return;
+				}
+			}
             Destroy(instance.gameObject);
         }
 
