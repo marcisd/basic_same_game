@@ -2,20 +2,20 @@ using System;
 
 namespace MSD.BasicSameGame.AI
 {
-	internal struct PlayoutInfo : IEquatable<PlayoutInfo>
+	internal struct PlayoutResult : IEquatable<PlayoutResult>
 	{
 		public int TotalMoves { get; }
+		public int TotalScore { get; }
 		public int RemainingTilesCount { get; }
 
-		public int Score => TotalMoves * (RemainingTilesCount + 1);
-
-		public PlayoutInfo(int totalMoves, int remainingTilesCount)
+		public PlayoutResult(int totalMoves, int totalScore, int remainingTilesCount)
 		{
 			TotalMoves = totalMoves;
+			TotalScore = totalScore;
 			RemainingTilesCount = remainingTilesCount;
 		}
 
-		public bool Equals(PlayoutInfo other)
+		public bool Equals(PlayoutResult other)
 		{
 			return TotalMoves == other.TotalMoves && RemainingTilesCount == other.RemainingTilesCount;
 		}

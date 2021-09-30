@@ -71,7 +71,7 @@ namespace MSD.BasicSameGame.View
 
 		public void FinishWithBestMoves()
 		{
-			MonteCarloTreeSearch mcts = new MonteCarloTreeSearch(_sameGame);
+			MonteCarloTreeSearch mcts = new MonteCarloTreeSearch(_sameGame, _scorer);
 			mcts.PerformSearch(10);
 		}
 

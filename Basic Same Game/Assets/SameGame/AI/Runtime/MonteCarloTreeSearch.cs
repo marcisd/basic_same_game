@@ -1,7 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace MSD.BasicSameGame.AI
 {
@@ -11,9 +9,9 @@ namespace MSD.BasicSameGame.AI
 	{
 		private readonly TreeNode _root;
 
-		public MonteCarloTreeSearch(SameGame sameGame)
+		public MonteCarloTreeSearch(SameGame sameGame, GameScorer scorer)
 		{
-			_root = new TreeNode(new SameGame(sameGame));
+			_root = new TreeNode(new SameGame(sameGame), new GameScorer(scorer));
 		}
 
 		public void PerformSearch(int iterations)
@@ -23,7 +21,6 @@ namespace MSD.BasicSameGame.AI
 				var C = Expansion(L);
 			}
 
-			Debug.Log("test");
 		}
 
 		/// <summary>

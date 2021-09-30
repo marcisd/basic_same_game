@@ -8,27 +8,15 @@ namespace MSD.BasicSameGame.AI
 
 	internal class TreeNode
 	{
-		public class MoveProperties
-		{
-			public Vector2Int SelectedCell { get; }
-			public int Depth { get; }
-
-			public MoveProperties(Vector2Int selectedCell, int depth)
-			{
-				SelectedCell = selectedCell;
-				Depth = depth;
-			}
-		}
-
 		private readonly SameGame _sameGame;
+
+		private readonly GameScorer _scorer;
 
 		private readonly TreeNode _parent;
 
 		private readonly bool _isTerminalNode;
 
 		private List<TreeNode> _children;
-
-		public MoveProperties properties { get; }
 
 		public bool IsRootNode => _parent == null;
 
@@ -40,21 +28,24 @@ namespace MSD.BasicSameGame.AI
 
 		public IReadOnlyList<TreeNode> Children => _children;
 
-		private PlayoutInfo? Playout { get; set; }
+		public Vector2Int? SelectedCell { get; }
+
+		private PlayoutResult? Playout { get; set; }
 
 		private TreeNode BestChild { get; set; }
 
-		public TreeNode(SameGame sameGame)
+		public TreeNode(SameGame sameGame, GameScorer scorer)
 		{
 			_sameGame = sameGame;
+			_scorer = scorer;
 			_isTerminalNode = !sameGame.HasValidMoves();
 		}
 
-		public TreeNode(SameGame sameGame, TreeNode parent, Vector2Int selectedCell, int depth)
-			: this(sameGame)
+		public TreeNode(SameGame sameGame, GameScorer scorer, TreeNode parent, Vector2Int selectedCell)
+			: this(sameGame, scorer)
 		{
 			_parent = parent;
-			properties = new MoveProperties(selectedCell, depth);
+			SelectedCell = selectedCell;
 		}
 
 		public void Expand()
@@ -65,18 +56,22 @@ namespace MSD.BasicSameGame.AI
 
 			Vector2Int[][] groups = _sameGame.GetMatchingCells();
 			_children = new List<TreeNode>();
-			int childDepth = properties != null ? properties.Depth + 1 : 1;
 
 			foreach (Vector2Int[] group in groups) {
-				SameGame copy = new SameGame(_sameGame);
+				SameGame gameCopy = new SameGame(_sameGame);
+				GameScorer scorerCopy = new GameScorer(_scorer);
 				Vector2Int selectedCell = group[0];
-				copy.DestroyMatchingTilesFromCell(selectedCell);
+				int matchesCount = gameCopy.DestroyMatchingTilesFromCell(selectedCell);
+				scorerCopy.RegisterMove(matchesCount);
 
-				TreeNode child = new TreeNode(copy, this, selectedCell, childDepth);
+				TreeNode child = new TreeNode(gameCopy, scorerCopy, this, selectedCell);
 				_children.Add(child);
 
 				if (child.IsTerminalNode) {
-					Playout = new PlayoutInfo(childDepth, child._sameGame.TileCount);
+					Playout = new PlayoutResult(
+						child._scorer.TotalMoves,
+						child._scorer.TotalScore,
+						child._sameGame.TileCount);
 				}
 			}
 		}
@@ -127,7 +122,7 @@ namespace MSD.BasicSameGame.AI
 		{
 			if (!_children.Contains(child)) { throw new ArgumentException("Not a child of this node.", nameof(child)); }
 
-			if (BestChild == null || BestChild.Playout.Value.Score > child.Playout.Value.Score) {
+			if (BestChild == null || BestChild.Playout.Value.TotalScore > child.Playout.Value.TotalScore) {
 				BestChild = child;
 				Playout = child.Playout;
 				return true;
