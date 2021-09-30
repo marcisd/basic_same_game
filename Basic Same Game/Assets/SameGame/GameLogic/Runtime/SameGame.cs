@@ -62,7 +62,6 @@ namespace MSD.BasicSameGame.GameLogic
 		public void Reset()
 		{
 			_tileMap.Clear();
-			_matchCollector.Reset();
 			IsInitialized = false;
 			TileCount = 0;
 		}
@@ -97,7 +96,7 @@ namespace MSD.BasicSameGame.GameLogic
 			HashSet<Vector2Int> visitedCells = new HashSet<Vector2Int>();
 			List<Vector2Int> matchingCells = new List<Vector2Int>();
 
-			var nonEmptyCells = _tileMap.GetNonEmptyCellsEnumerator();
+			IEnumerator<Vector2Int> nonEmptyCells = _tileMap.GetNonEmptyCellsEnumerator();
 			while (nonEmptyCells.MoveNext()) {
 				if (visitedCells.Contains(nonEmptyCells.Current)) { continue; }
 
@@ -253,9 +252,9 @@ namespace MSD.BasicSameGame.GameLogic
 				Vector2Int origPos = originalPositionVerticalMain[i];
 				if (originalPositionHorizontalAdditive.Contains(origPos)) {
 					int idx = originalPositionHorizontalAdditive.IndexOf(origPos);
-					var newPosX = newPositionHorizontalAdditive[idx];
+					Vector2Int newPosX = newPositionHorizontalAdditive[idx];
 
-					var newPosY = newPositionVerticalMain[i];
+					Vector2Int newPosY = newPositionVerticalMain[i];
 					newPositionVerticalMain[i] = new Vector2Int(newPosX.x, newPosY.y);
 
 					originalPositionHorizontalAdditive.RemoveAt(idx);

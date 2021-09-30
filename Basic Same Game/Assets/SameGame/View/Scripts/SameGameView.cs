@@ -18,6 +18,9 @@ namespace MSD.BasicSameGame.View
 		private int _minimumMatchCount = 3;
 
 		[SerializeField]
+		private bool _isTouchDisabled;
+
+		[SerializeField]
 		private List<TileController> _tilePrefabs;
 
 		[Space]
@@ -95,14 +98,12 @@ namespace MSD.BasicSameGame.View
 		{
 			TileController tile = SpawnTile(tileIndex);
 			tile.SpawnAtPosition(cellPosition);
-			tile.OnTileSelected += OnTileSelected;
 			_activeTiles.Add(cellPosition, tile);
 		}
 
 		private void OnTileDestroyed(Vector2Int cellPosition)
 		{
 			TileController tile = _activeTiles[cellPosition];
-			tile.OnTileSelected -= OnTileSelected;
 			DespawnTile(tile, null);
 			_activeTiles.Remove(cellPosition);
 		}
@@ -117,6 +118,8 @@ namespace MSD.BasicSameGame.View
 
 		private void OnTileSelected(Vector2Int cellPosition)
 		{
+			if (_isTouchDisabled) { return; }
+
 			int tilesDestroyed = _sameGame.DestroyMatchingTilesFromCell(cellPosition);
 			if (tilesDestroyed > 0 && !_sameGame.HasValidMoves()) {
 				_onGameOver.Invoke();
@@ -125,17 +128,21 @@ namespace MSD.BasicSameGame.View
 
 		private TileController SpawnTile(int tileIndex)
 		{
+			TileController tile;
 			if (_recycler != null) {
-				return _recycler.Spawn(_tilePrefabs[tileIndex - 1], transform);
+				tile = _recycler.Spawn(_tilePrefabs[tileIndex - 1], transform);
 			} else {
-				TileController tile = Instantiate(_tilePrefabs[tileIndex - 1]);
+				tile = Instantiate(_tilePrefabs[tileIndex - 1]);
 				tile.transform.SetParent(transform, false);
 				return tile;
 			}
+			tile.OnTileSelected += OnTileSelected;
+			return tile;
 		}
 
 		private void DespawnTile(TileController tile, Action onDespawn)
 		{
+			tile.OnTileSelected -= OnTileSelected;
 			if (_recycler != null) {
 				_recycler.Despawn(tile, onDespawn);
 			} else {
