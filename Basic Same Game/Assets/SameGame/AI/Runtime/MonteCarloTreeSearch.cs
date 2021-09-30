@@ -13,7 +13,7 @@ namespace MSD.BasicSameGame.AI
 
 		public MonteCarloTreeSearch(SameGame sameGame)
 		{
-			_root = new TreeNode(sameGame);
+			_root = new TreeNode(new SameGame(sameGame));
 		}
 
 		public void PerformSearch(int iterations)

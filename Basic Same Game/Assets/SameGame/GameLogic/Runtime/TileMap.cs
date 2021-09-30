@@ -28,9 +28,10 @@ namespace MSD.BasicSameGame.GameLogic
         public TileMap(int horizontal, int vertical, int tileTypeCount)
             : this (new Vector2Int(horizontal, vertical), tileTypeCount) { }
 
-        public TileMap Clone()
+        public TileMap(TileMap tileMap)
         {
-            return (TileMap)MemberwiseClone();
+            _tileTypeCount = tileMap._tileTypeCount;
+            _tiles = tileMap._tiles.Clone() as int[,];
         }
 
         public void Clear()

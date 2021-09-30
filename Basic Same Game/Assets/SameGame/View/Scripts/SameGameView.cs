@@ -8,6 +8,7 @@ namespace MSD.BasicSameGame.View
 {
 	using GameLogic;
 	using Modules.ObjectPool;
+	using AI;
 
 	public class SameGameView : MonoBehaviour
 	{
@@ -55,6 +56,12 @@ namespace MSD.BasicSameGame.View
 		public void GameRestart()
 		{
 			GameReset(GameStart);
+		}
+
+		public void FinishWithBestMoves()
+		{
+			MonteCarloTreeSearch mcts = new MonteCarloTreeSearch(_sameGame);
+			mcts.PerformSearch(10);
 		}
 
 		private void Awake()

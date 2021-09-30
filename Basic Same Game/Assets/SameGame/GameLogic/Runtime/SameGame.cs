@@ -38,8 +38,9 @@ namespace MSD.BasicSameGame.GameLogic
 		public SameGame(SameGame sameGame)
 		{
 			_grid = sameGame._grid;
-			_tileMap = sameGame._tileMap.Clone();
 			_minimumMatchCount = sameGame._minimumMatchCount;
+
+			_tileMap = new TileMap(sameGame._tileMap);
 			_matchCollector = new MatchCollector(sameGame._matchCollector);
 
 			IsInitialized = sameGame.IsInitialized;
