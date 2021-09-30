@@ -19,7 +19,7 @@ namespace MSD.BasicSameGame.View
 		private int _minimumMatchCount = 3;
 
 		[SerializeField]
-		private bool _isTouchDisabled;
+		private ScoreCalculator _scoreCalculator;
 
 		[SerializeField]
 		private List<TileController> _tilePrefabs;
@@ -36,7 +36,17 @@ namespace MSD.BasicSameGame.View
 		[SerializeField]
 		private UnityEvent _onGameOver;
 
+		[Space]
+		[SerializeField]
+		private UnityEvent<string> _onScoreLabelUpdate;
+
+		[Header("Runtime")]
+		[SerializeField]
+		private bool _isTouchDisabled;
+
 		private SameGame _sameGame;
+
+		private GameScorer _scorer;
 
 		private Dictionary<Vector2Int, TileController> _activeTiles = new Dictionary<Vector2Int, TileController>();
 
@@ -46,6 +56,7 @@ namespace MSD.BasicSameGame.View
 		{
 			_sameGame.Initialize();
 			_onGameStart.Invoke();
+			UpdateScore(0);
 		}
 
 		public void GameReset()
@@ -69,7 +80,9 @@ namespace MSD.BasicSameGame.View
 			_sameGame = new SameGame(_gridSize, _tilePrefabs.Count, _minimumMatchCount);
 			_sameGame.OnTileCreated += OnTileCreated;
 			_sameGame.OnTileDestroyed += OnTileDestroyed;
-			_sameGame.OnTileMoved += OnTileMoved;	
+			_sameGame.OnTileMoved += OnTileMoved;
+
+			_scorer = new GameScorer(_scoreCalculator);
 		}
 
 		private void Start()
@@ -88,6 +101,7 @@ namespace MSD.BasicSameGame.View
 			{
 				_activeTiles.Clear();
 				_sameGame.Reset();
+				_scorer.Reset();
 				onComplete?.Invoke();
 			}
 
@@ -128,8 +142,13 @@ namespace MSD.BasicSameGame.View
 			if (_isTouchDisabled) { return; }
 
 			int tilesDestroyed = _sameGame.DestroyMatchingTilesFromCell(cellPosition);
-			if (tilesDestroyed > 0 && !_sameGame.HasValidMoves()) {
-				_onGameOver.Invoke();
+			if (tilesDestroyed > 0) {
+				_scorer.RegisterMove(tilesDestroyed);
+				UpdateScore(_scorer.TotalScore);
+
+				if (!_sameGame.HasValidMoves()) {
+					_onGameOver.Invoke();
+				}
 			}
 		}
 
@@ -155,6 +174,11 @@ namespace MSD.BasicSameGame.View
 			} else {
 				Destroy(tile.gameObject);
 			}
+		}
+
+		private void UpdateScore(int score)
+		{
+			_onScoreLabelUpdate.Invoke($"Score: {score}");
 		}
 	}
 }
