@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace MSD.BasicSameGame.AI
 {
@@ -17,10 +18,11 @@ namespace MSD.BasicSameGame.AI
 		public void PerformSearch(int iterations)
 		{
 			for (int i = 0; i < iterations; i++) {
-				var L = Selection();
-				var C = Expansion(L);
+				TreeNode leaf = Selection();
+				TreeNode child = Expansion(leaf);
+				Simulation(child);
+				Backpropagation(child);
 			}
-
 		}
 
 		/// <summary>
@@ -33,10 +35,12 @@ namespace MSD.BasicSameGame.AI
 		/// <returns>A leaf node L</returns>
 		private TreeNode Selection()
 		{
-			// TODO: add heuristics later
+			// TODO: Randomized for now. Add selection algorithm later
+			// Selection should balance Exploration vs Expansion
 			IEnumerable<TreeNode> leaves = _root.GetLeaves();
-			var tempLeaves = leaves.ToArray();
-			return leaves.First();
+			TreeNode[] leavesArr = leaves.ToArray();
+			int rand = Random.Range(0, leavesArr.Length - 1);
+			return leavesArr[rand];
 		}
 
 		/// <summary>
@@ -45,11 +49,12 @@ namespace MSD.BasicSameGame.AI
 		/// Child nodes are any valid moves from the game position defined by L.
 		/// </summary>
 		/// <returns>From the expanded node L, select a child node C.</returns>
-		private TreeNode Expansion(TreeNode L)
+		private TreeNode Expansion(TreeNode leaf)
 		{
-			L.Expand();
-			// TODO: just return the first child for now
-			return L.Children[0];
+			// TODO: Randomized for now. Add heuristics later
+			leaf.Expand();
+			int rand = Random.Range(0, leaf.Children.Count - 1);
+			return leaf.Children[rand];
 		}
 
 		/// <summary>
@@ -58,15 +63,17 @@ namespace MSD.BasicSameGame.AI
 		/// A playout may be as simple as choosing uniform random moves until the game is decided
 		/// (for example in chess, the game is won, lost, or drawn).
 		/// </summary>
-		private void Simulation()
+		private void Simulation(TreeNode child)
 		{
+			child.Simulate();
 		}
 
 		/// <summary>
 		/// Backpropagation: Use the result of the playout to update information in the nodes on the path from C to R.
 		/// </summary>
-		private void BackPropagation()
+		private void Backpropagation(TreeNode child)
 		{
+			child.Backpropagate();
 		}
 	}
 }

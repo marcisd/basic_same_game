@@ -12,21 +12,17 @@ namespace MSD.BasicSameGame.AI
 
 		private readonly GameScorer _scorer;
 
-		private readonly TreeNode _parent;
-
-		private readonly bool _isTerminalNode;
-
 		private List<TreeNode> _children;
 
-		public bool IsRootNode => _parent == null;
+		public bool IsRootNode => Parent == null;
 
 		public bool IsLeafNode => _children == null || _children.Count == 0;
 
-		public bool IsTerminalNode => _isTerminalNode;
-
-		public TreeNode Parent => _parent;
-
 		public IReadOnlyList<TreeNode> Children => _children;
+
+		public TreeNode Parent { get; }
+
+		public bool IsTerminalNode { get; }
 
 		public Vector2Int? SelectedCell { get; }
 
@@ -38,87 +34,61 @@ namespace MSD.BasicSameGame.AI
 		{
 			_sameGame = sameGame;
 			_scorer = scorer;
-			_isTerminalNode = !sameGame.HasValidMoves();
+
+			if (!sameGame.HasValidMoves()) {
+				IsTerminalNode = true;
+
+				Playout = new PlayoutResult(
+					_scorer.TotalMoves,
+					_scorer.TotalScore,
+					_sameGame.TileCount);
+			}
 		}
 
 		public TreeNode(SameGame sameGame, GameScorer scorer, TreeNode parent, Vector2Int selectedCell)
 			: this(sameGame, scorer)
 		{
-			_parent = parent;
+			Parent = parent;
 			SelectedCell = selectedCell;
 		}
 
 		public void Expand()
 		{
-			if (IsTerminalNode && !IsLeafNode) {
-				throw new InvalidOperationException("Only non-terminal leaves can be expanded!");
-			}
+			if (IsTerminalNode && !IsLeafNode) { throw new InvalidOperationException("Only non-terminal leaf nodes can be expanded!"); }
 
 			Vector2Int[][] groups = _sameGame.GetMatchingCells();
 			_children = new List<TreeNode>();
 
 			foreach (Vector2Int[] group in groups) {
-				SameGame gameCopy = new SameGame(_sameGame);
-				GameScorer scorerCopy = new GameScorer(_scorer);
-				Vector2Int selectedCell = group[0];
-				int matchesCount = gameCopy.DestroyMatchingTilesFromCell(selectedCell);
-				scorerCopy.RegisterMove(matchesCount);
-
-				TreeNode child = new TreeNode(gameCopy, scorerCopy, this, selectedCell);
-				_children.Add(child);
-
-				if (child.IsTerminalNode) {
-					Playout = new PlayoutResult(
-						child._scorer.TotalMoves,
-						child._scorer.TotalScore,
-						child._sameGame.TileCount);
-				}
+				CreateChildNode(group[0]);
 			}
+		}
+
+		public void Simulate()
+		{
+			if (IsTerminalNode && !IsLeafNode) { throw new InvalidOperationException("Only non-terminal leaf nodes can be simulated!"); }
+
+			SameGame gameCopy = new SameGame(_sameGame);
+			GameScorer scorerCopy = new GameScorer(_scorer);
+
+			Playout = TreeNodeOperations.PlayoutSimulation(gameCopy, scorerCopy);
 		}
 
 		public IEnumerable<TreeNode> GetLeaves()
 		{
-			return TraverseNodeForLeavesRecursively(this);
+			return TreeNodeOperations.TraverseNodeForLeavesRecursively(this);
 		}
 
-		public static void BackPropagate(TreeNode leafNode)
+		public void Backpropagate()
 		{
-			if (leafNode == null) { throw new ArgumentNullException(nameof(leafNode)); }
+			if (!IsLeafNode) { throw new InvalidOperationException("Backpropagation must start on a leaf node!"); }
 
-			if (!leafNode.IsLeafNode) { throw new ArgumentException("Must be a leaf node!", nameof(leafNode)); }
+			if (Playout == null) { throw new InvalidOperationException("Starting leaf node must have a playout information to backpropagate!"); }
 
-			if (leafNode.Playout == null) { throw new ArgumentException("Leaf node must have a playout information to backpropagate!"); }
-
-			BackPropagateRecursively(leafNode);
+			TreeNodeOperations.BackpropagateRecursively(this);
 		}
 
-		private static IEnumerable<TreeNode> TraverseNodeForLeavesRecursively(TreeNode node)
-		{
-			if (node.IsTerminalNode) {
-				yield break;
-			}
-
-			if (node.IsLeafNode) {
-				yield return node;
-			} else {
-				foreach (TreeNode child in node._children) {
-					foreach (var leaf in TraverseNodeForLeavesRecursively(child)) {
-						yield return leaf;
-					}
-				}
-			}
-		}
-
-		private static void BackPropagateRecursively(TreeNode node)
-		{
-			if (node.IsRootNode) { return; }
-
-			if (node.Parent.TryUpdateBestChild(node)) {
-				BackPropagateRecursively(node.Parent);
-			}
-		}
-
-		private bool TryUpdateBestChild(TreeNode child)
+		internal bool TryUpdateBestChild(TreeNode child)
 		{
 			if (!_children.Contains(child)) { throw new ArgumentException("Not a child of this node.", nameof(child)); }
 
@@ -128,6 +98,20 @@ namespace MSD.BasicSameGame.AI
 				return true;
 			}
 			return false;
+		}
+
+		private void CreateChildNode(Vector2Int matchMember)
+		{
+			SameGame gameCopy = new SameGame(_sameGame);
+			int matchesCount = gameCopy.DestroyMatchingTilesFromCell(matchMember);
+
+			if (matchesCount == 0) { throw new ArgumentException("Prameter should trigger a valid match!", nameof(matchMember)); }
+
+			GameScorer scorerCopy = new GameScorer(_scorer);
+			scorerCopy.RegisterMove(matchesCount);
+
+			TreeNode child = new TreeNode(gameCopy, scorerCopy, this, matchMember);
+			_children.Add(child);
 		}
 	}
 }
