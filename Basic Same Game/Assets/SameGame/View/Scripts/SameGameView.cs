@@ -9,45 +9,33 @@ namespace MSD.BasicSameGame.View
 	using GameLogic;
 	using Modules.ObjectPool;
 	using AI;
+	using System.Collections;
 
 	public class SameGameView : MonoBehaviour
 	{
-		[SerializeField]
-		private Vector2Int _gridSize;
+		[SerializeField] private Vector2Int _gridSize;
+		[SerializeField] private int _minimumMatchCount = 3;
 
-		[SerializeField]
-		private int _minimumMatchCount = 3;
+		[SerializeField] private ScoreCalculator _scoreCalculator;
 
-		[SerializeField]
-		private ScoreCalculator _scoreCalculator;
-
-		[SerializeField]
-		private List<TileController> _tilePrefabs;
+		[SerializeField] private List<TileController> _tilePrefabs;
 
 		[Space]
-		[SerializeField]
-		private ObjectPool _recycler;
+		[SerializeField] private ObjectPool _recycler;
 
 		[Space]
-		[SerializeField]
-		private UnityEvent _onGameStart;
+		[SerializeField] private UnityEvent _onGameStart;
+		[SerializeField] private UnityEvent _onGameOver;
+		[SerializeField] private UnityEvent<string> _onScoreLabelUpdate;
 
-		[Space]
-		[SerializeField]
-		private UnityEvent _onGameOver;
-
-		[Space]
-		[SerializeField]
-		private UnityEvent<string> _onScoreLabelUpdate;
+		[Header("AI")]
+		[SerializeField] private int _searchIterations = 500;
 
 		[Header("Runtime")]
-		[SerializeField]
-		private bool _isTouchDisabled;
+		[SerializeField] private bool _isTouchDisabled;
 
 		private SameGame _sameGame;
-
 		private GameScorer _scorer;
-
 		private Dictionary<Vector2Int, TileController> _activeTiles = new Dictionary<Vector2Int, TileController>();
 
 		public Vector2Int GridSize => _gridSize;
@@ -57,6 +45,7 @@ namespace MSD.BasicSameGame.View
 			_sameGame.Initialize();
 			_onGameStart.Invoke();
 			UpdateScore(0);
+			_isTouchDisabled = false;
 		}
 
 		public void GameReset()
@@ -71,8 +60,10 @@ namespace MSD.BasicSameGame.View
 
 		public void FinishWithBestMoves()
 		{
+			_isTouchDisabled = true;
 			MonteCarloTreeSearch mcts = new MonteCarloTreeSearch(_sameGame, _scorer);
-			mcts.PerformSearch(10);
+			IEnumerable<Vector2Int> moves = mcts.PerformSearch(_searchIterations);
+			StartCoroutine(Playout(moves));
 		}
 
 		private void Awake()
@@ -115,6 +106,15 @@ namespace MSD.BasicSameGame.View
 			}
 		}
 
+		private IEnumerator Playout(IEnumerable<Vector2Int> moves)
+		{
+			foreach (Vector2Int move in moves) {
+				SelectTile(move);
+				Debug.Log(move);
+				yield return new WaitForSeconds(1);
+			}
+		}
+
 		private void OnTileCreated(Vector2Int cellPosition, int tileIndex)
 		{
 			TileController tile = SpawnTile(tileIndex);
@@ -125,8 +125,8 @@ namespace MSD.BasicSameGame.View
 		private void OnTileDestroyed(Vector2Int cellPosition)
 		{
 			TileController tile = _activeTiles[cellPosition];
-			DespawnTile(tile, null);
 			_activeTiles.Remove(cellPosition);
+			DespawnTile(tile, null);
 		}
 
 		private void OnTileMoved(Vector2Int originalCellPosition, Vector2Int newCellPosition)
@@ -139,8 +139,13 @@ namespace MSD.BasicSameGame.View
 
 		private void OnTileSelected(Vector2Int cellPosition)
 		{
-			if (_isTouchDisabled) { return; }
+			if (!_isTouchDisabled) {
+				SelectTile(cellPosition);
+			}
+		}
 
+		private void SelectTile(Vector2Int cellPosition)
+		{
 			int tilesDestroyed = _sameGame.DestroyMatchingTilesFromCell(cellPosition);
 			if (tilesDestroyed > 0) {
 				_scorer.RegisterMove(tilesDestroyed);
@@ -160,7 +165,6 @@ namespace MSD.BasicSameGame.View
 			} else {
 				tile = Instantiate(_tilePrefabs[tileIndex - 1]);
 				tile.transform.SetParent(transform, false);
-				return tile;
 			}
 			tile.OnTileSelected += OnTileSelected;
 			return tile;

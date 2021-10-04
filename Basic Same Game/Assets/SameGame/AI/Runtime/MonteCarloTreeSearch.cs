@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace MSD.BasicSameGame.AI
 {
@@ -15,14 +16,30 @@ namespace MSD.BasicSameGame.AI
 			_root = new TreeNode(new SameGame(sameGame), new GameScorer(scorer));
 		}
 
-		public void PerformSearch(int iterations)
+		public IEnumerable<Vector2Int> PerformSearch(int iterations)
 		{
-			for (int i = 0; i < iterations; i++) {
-				TreeNode leaf = Selection();
+			Stopwatch stopwatch = new Stopwatch();
+			stopwatch.Start();
+
+			int i = 0;
+			for (; i < iterations; i++) {
+				if (!TrySelection(out TreeNode leaf)) {
+					Debug.Log("Exhausted all possible outcomes!");
+					break;
+				}
 				TreeNode child = Expansion(leaf);
 				Simulation(child);
 				Backpropagation(child);
 			}
+
+			stopwatch.Stop();
+			var elapsed = stopwatch.Elapsed;
+
+			Debug.Log($"Performed search for {iterations} iterations. Finished in {i}.");
+			Debug.Log($"Finished search in {elapsed.TotalSeconds} seconds.");
+			Debug.Log("Returning best moves...");
+
+			return TreeNodeOperations.TraverseBestChild(_root);
 		}
 
 		/// <summary>
@@ -33,14 +50,20 @@ namespace MSD.BasicSameGame.AI
 		/// expand towards the most promising moves, which is the essence of Monte Carlo tree search.
 		/// </summary>
 		/// <returns>A leaf node L</returns>
-		private TreeNode Selection()
+		private bool TrySelection(out TreeNode leaf)
 		{
 			// TODO: Randomized for now. Add selection algorithm later
 			// Selection should balance Exploration vs Expansion
-			IEnumerable<TreeNode> leaves = _root.GetLeaves();
-			TreeNode[] leavesArr = leaves.ToArray();
+			IEnumerable<TreeNode> nonTerminalLeaves = _root.GetNonTerminalLeaves();
+			if (nonTerminalLeaves.Count() == 0) {
+				leaf = null;
+				return false;
+			}
+			TreeNode[] leavesArr = nonTerminalLeaves.ToArray();
 			int rand = Random.Range(0, leavesArr.Length - 1);
-			return leavesArr[rand];
+			leaf = leavesArr[rand];
+			Debug.Log($"Found {leavesArr.Length} leaves...");
+			return true;
 		}
 
 		/// <summary>

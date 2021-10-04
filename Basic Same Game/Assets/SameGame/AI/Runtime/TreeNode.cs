@@ -26,9 +26,11 @@ namespace MSD.BasicSameGame.AI
 
 		public Vector2Int? SelectedCell { get; }
 
-		private PlayoutResult? Playout { get; set; }
+		public TreeNode BestChild { get; private set; }
 
-		private TreeNode BestChild { get; set; }
+		public IEnumerable<Vector2Int> SimulationResult { get; private set; }
+
+		private PlayoutResult? Playout { get; set; }
 
 		public TreeNode(SameGame sameGame, GameScorer scorer)
 		{
@@ -38,6 +40,7 @@ namespace MSD.BasicSameGame.AI
 			if (!sameGame.HasValidMoves()) {
 				IsTerminalNode = true;
 
+				// TODO: need to be considered during backpropagation
 				Playout = new PlayoutResult(
 					_scorer.TotalMoves,
 					_scorer.TotalScore,
@@ -59,6 +62,8 @@ namespace MSD.BasicSameGame.AI
 			Vector2Int[][] groups = _sameGame.GetMatchingCells();
 			_children = new List<TreeNode>();
 
+			SimulationResult = null;
+
 			foreach (Vector2Int[] group in groups) {
 				CreateChildNode(group[0]);
 			}
@@ -71,12 +76,17 @@ namespace MSD.BasicSameGame.AI
 			SameGame gameCopy = new SameGame(_sameGame);
 			GameScorer scorerCopy = new GameScorer(_scorer);
 
-			Playout = TreeNodeOperations.PlayoutSimulation(gameCopy, scorerCopy);
+			SimulationResult = TreeNodeOperations.PlayoutRandomSimulation(gameCopy, scorerCopy);
+
+			Playout = new PlayoutResult(
+					scorerCopy.TotalMoves,
+					scorerCopy.TotalScore,
+					gameCopy.TileCount);
 		}
 
-		public IEnumerable<TreeNode> GetLeaves()
+		public IEnumerable<TreeNode> GetNonTerminalLeaves()
 		{
-			return TreeNodeOperations.TraverseNodeForLeavesRecursively(this);
+			return TreeNodeOperations.TraverseNodeForNonTerminalLeavesRecursively(this);
 		}
 
 		public void Backpropagate()

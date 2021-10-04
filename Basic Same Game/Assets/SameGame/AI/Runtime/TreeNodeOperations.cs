@@ -6,22 +6,19 @@ namespace MSD.BasicSameGame.AI
 {
 	internal static class TreeNodeOperations
 	{
-		public static PlayoutResult PlayoutSimulation(SameGame sameGame, GameScorer scorer)
+		public static IEnumerable<Vector2Int> PlayoutRandomSimulation(SameGame sameGame, GameScorer scorer)
 		{
 			while (sameGame.HasValidMoves()) {
 				Vector2Int[][] matches = sameGame.GetMatchingCells();
 				int randomMatch = Random.Range(0, matches.Length - 1);
+				Vector2Int randomCell = matches[randomMatch][0];
+				yield return randomCell;
 				int matchesCount = sameGame.DestroyMatchingTilesFromCell(matches[randomMatch][0]);
 				scorer.RegisterMove(matchesCount);
 			}
-
-			return new PlayoutResult(
-				scorer.TotalMoves,
-				scorer.TotalScore,
-				sameGame.TileCount);
 		}
 
-		public static IEnumerable<TreeNode> TraverseNodeForLeavesRecursively(TreeNode node)
+		public static IEnumerable<TreeNode> TraverseNodeForNonTerminalLeavesRecursively(TreeNode node)
 		{
 			if (node.IsTerminalNode) {
 				yield break;
@@ -31,7 +28,7 @@ namespace MSD.BasicSameGame.AI
 				yield return node;
 			} else {
 				foreach (TreeNode child in node.Children) {
-					foreach (TreeNode leaf in TraverseNodeForLeavesRecursively(child)) {
+					foreach (TreeNode leaf in TraverseNodeForNonTerminalLeavesRecursively(child)) {
 						yield return leaf;
 					}
 				}
@@ -44,6 +41,18 @@ namespace MSD.BasicSameGame.AI
 
 			if (node.Parent.TryUpdateBestChild(node)) {
 				BackpropagateRecursively(node.Parent);
+			}
+		}
+
+		public static IEnumerable<Vector2Int> TraverseBestChild(TreeNode node)
+		{
+			while (node.BestChild != null && node.BestChild.SelectedCell.HasValue) {
+				yield return node.BestChild.SelectedCell.Value;
+				node = node.BestChild;
+			}
+
+			foreach (var sim in node.SimulationResult) {
+				yield return sim;
 			}
 		}
 	}
