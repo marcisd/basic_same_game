@@ -549,7 +549,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0adb2d53308904fcca7916a31ae4f621, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _gridSize: {x: 12, y: 12}
+  _gridSize: {x: 8, y: 8}
+  _tileCount: 3
   _minimumMatchCount: 3
   _scoreCalculator: {fileID: 11400000, guid: 8d741136bb8b645ad96fc05f9b313669, type: 2}
   _tilePrefabs:
@@ -557,6 +558,7 @@ MonoBehaviour:
   - {fileID: 249670637421696722, guid: 02831a25e406748ba97830acf981d472, type: 3}
   - {fileID: 1407966493294103882, guid: 7b5dd18b7ad5441159d2de8cd05c9927, type: 3}
   - {fileID: 617525785940533649, guid: bd92e1d8354a44a0e8948db34ca23767, type: 3}
+  - {fileID: 8529094669750887470, guid: c29060030fb0a4ef8a719045f879f02f, type: 3}
   _recycler: {fileID: 586005977}
   _onGameStart:
     m_PersistentCalls:
@@ -627,6 +629,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  _searchIterations: 500
   _isTouchDisabled: 0
 --- !u!4 &403884594
 Transform:

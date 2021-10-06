@@ -13,7 +13,12 @@ namespace MSD.BasicSameGame.View
 
 	public class SameGameView : MonoBehaviour
 	{
+		private static readonly int MIN_TILES_COUNT = 3;
+		private static readonly int MIN_GRID_SIZE = 5;
+		private static readonly int MAX_GRID_SIZE = 20;
+
 		[SerializeField] private Vector2Int _gridSize;
+		[SerializeField] private int _tileCount = 3;
 		[SerializeField] private int _minimumMatchCount = 3;
 
 		[SerializeField] private ScoreCalculator _scoreCalculator;
@@ -68,12 +73,16 @@ namespace MSD.BasicSameGame.View
 
 		private void Awake()
 		{
-			_sameGame = new SameGame(_gridSize, _tilePrefabs.Count, _minimumMatchCount);
-			_sameGame.OnTileCreated += OnTileCreated;
-			_sameGame.OnTileDestroyed += OnTileDestroyed;
-			_sameGame.OnTileMoved += OnTileMoved;
+			if (_tilePrefabs.Count >= MIN_TILES_COUNT) {
+				_sameGame = new SameGame(_gridSize, _tileCount, _minimumMatchCount);
+				_sameGame.OnTileCreated += OnTileCreated;
+				_sameGame.OnTileDestroyed += OnTileDestroyed;
+				_sameGame.OnTileMoved += OnTileMoved;
 
-			_scorer = new GameScorer(_scoreCalculator);
+				_scorer = new GameScorer(_scoreCalculator);
+			} else {
+				Debug.LogError("Failed to instantiate game!");
+			}
 		}
 
 		private void Start()
@@ -83,7 +92,8 @@ namespace MSD.BasicSameGame.View
 
 		private void OnValidate()
 		{
-			_gridSize = new Vector2Int(Mathf.Clamp(_gridSize.x, 1, 20), Mathf.Clamp(_gridSize.y, 1, 20));
+			_gridSize = new Vector2Int(Mathf.Clamp(_gridSize.x, MIN_GRID_SIZE, MAX_GRID_SIZE), Mathf.Clamp(_gridSize.y, MIN_GRID_SIZE, MAX_GRID_SIZE));
+			_tileCount = Mathf.Clamp(_tileCount, MIN_TILES_COUNT, _tilePrefabs.Count);
 		}
 
 		private void GameReset(Action onComplete)
