@@ -34,26 +34,5 @@ namespace MSD.BasicSameGame.AI
 				}
 			}
 		}
-
-		public static void BackpropagateRecursively(TreeNode node)
-		{
-			if (node.IsRootNode) { return; }
-
-			if (node.Parent.TryUpdateBestChild(node)) {
-				BackpropagateRecursively(node.Parent);
-			}
-		}
-
-		public static IEnumerable<Vector2Int> TraverseBestChild(TreeNode node)
-		{
-			while (node.BestChild != null && node.BestChild.SelectedCell.HasValue) {
-				yield return node.BestChild.SelectedCell.Value;
-				node = node.BestChild;
-			}
-
-			foreach (var sim in node.SimulationResult) {
-				yield return sim;
-			}
-		}
 	}
 }

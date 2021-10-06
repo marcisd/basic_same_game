@@ -20,15 +20,15 @@ namespace MSD.BasicSameGame.AI
 
 		public IReadOnlyList<TreeNode> Children => _children;
 
-		public TreeNode Parent { get; }
-
 		public bool IsTerminalNode { get; }
 
-		public Vector2Int? SelectedCell { get; }
+		public TreeNode Parent { get; }
 
-		public TreeNode BestChild { get; private set; }
+		public Vector2Int? SelectedCellFromPatent { get; }
 
-		public IEnumerable<Vector2Int> SimulationResult { get; private set; }
+		private TreeNode BestChild { get; set; }
+
+		private IEnumerable<Vector2Int> SimulationResult { get; set; }
 
 		private PlayoutResult? Playout { get; set; }
 
@@ -40,7 +40,6 @@ namespace MSD.BasicSameGame.AI
 			if (!sameGame.HasValidMoves()) {
 				IsTerminalNode = true;
 
-				// TODO: need to be considered during backpropagation
 				Playout = new PlayoutResult(
 					_scorer.TotalMoves,
 					_scorer.TotalScore,
@@ -52,7 +51,7 @@ namespace MSD.BasicSameGame.AI
 			: this(sameGame, scorer)
 		{
 			Parent = parent;
-			SelectedCell = selectedCell;
+			SelectedCellFromPatent = selectedCell;
 		}
 
 		public void Expand()
@@ -95,10 +94,20 @@ namespace MSD.BasicSameGame.AI
 
 			if (Playout == null) { throw new InvalidOperationException("Starting leaf node must have a playout information to backpropagate!"); }
 
-			TreeNodeOperations.BackpropagateRecursively(this);
+			BackpropagateRecursively(this);
 		}
 
-		internal bool TryUpdateBestChild(TreeNode child)
+		public IEnumerable<Vector2Int> GetPathToBestPlayout()
+		{
+			if (!IsRootNode) { throw new InvalidOperationException("Operation must start from the root node!"); }
+
+			List<Vector2Int> path = new List<Vector2Int>();
+			GetPathToBestPlayoutRecursively(this, ref path);
+
+			return path;
+		}
+
+		private bool TryUpdateBestChild(TreeNode child)
 		{
 			if (!_children.Contains(child)) { throw new ArgumentException("Not a child of this node.", nameof(child)); }
 
@@ -122,6 +131,34 @@ namespace MSD.BasicSameGame.AI
 
 			TreeNode child = new TreeNode(gameCopy, scorerCopy, this, matchMember);
 			_children.Add(child);
+
+			if (child.IsTerminalNode) {
+				Debug.Log("Created terminal child. Backpropagating...");
+				BackpropagateRecursively(child);
+			}
+		}
+
+		private static void BackpropagateRecursively(TreeNode node)
+		{
+			if (node.IsRootNode) { return; }
+
+			if (node.Parent.TryUpdateBestChild(node)) {
+				BackpropagateRecursively(node.Parent);
+			}
+		}
+
+		private static void GetPathToBestPlayoutRecursively(TreeNode node, ref List<Vector2Int> path)
+		{
+			if (node.IsTerminalNode) { return; }
+
+			if (node.SimulationResult != null) {
+				path.AddRange(node.SimulationResult);
+				return;
+			}
+
+			path.Add(node.BestChild.SelectedCellFromPatent.Value);
+
+			GetPathToBestPlayoutRecursively(node.BestChild, ref path);
 		}
 	}
 }

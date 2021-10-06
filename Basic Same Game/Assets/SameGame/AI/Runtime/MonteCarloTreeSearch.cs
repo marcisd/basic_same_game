@@ -39,7 +39,7 @@ namespace MSD.BasicSameGame.AI
 			Debug.Log($"Finished search in {elapsed.TotalSeconds} seconds.");
 			Debug.Log("Returning best moves...");
 
-			return TreeNodeOperations.TraverseBestChild(_root);
+			return _root.GetPathToBestPlayout();
 		}
 
 		/// <summary>
