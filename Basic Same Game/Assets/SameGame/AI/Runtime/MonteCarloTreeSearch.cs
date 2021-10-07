@@ -52,7 +52,7 @@ namespace MSD.BasicSameGame.AI
 		/// <returns>A leaf node L</returns>
 		private bool TrySelection(out TreeNode leaf)
 		{
-			// TODO: Randomized for now. Add selection algorithm later
+			// TODO: Randomized policy for now. Add selection algorithm later
 			// Selection should balance Exploration vs Expansion
 			IEnumerable<TreeNode> nonTerminalLeaves = _root.GetNonTerminalLeaves();
 			if (nonTerminalLeaves.Count() == 0) {

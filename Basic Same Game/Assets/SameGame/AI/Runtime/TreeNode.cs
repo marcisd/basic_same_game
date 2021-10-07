@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace MSD.BasicSameGame.AI
@@ -13,6 +14,8 @@ namespace MSD.BasicSameGame.AI
 		private readonly GameScorer _scorer;
 
 		private List<TreeNode> _children;
+
+		private List<TreeNode> _nonTerminalLeavesCache;
 
 		public bool IsRootNode => Parent == null;
 
@@ -54,6 +57,16 @@ namespace MSD.BasicSameGame.AI
 			SelectedCellFromPatent = selectedCell;
 		}
 
+		public IEnumerable<TreeNode> GetNonTerminalLeaves()
+		{
+			if (_nonTerminalLeavesCache != null) {
+				UpdateNonTerminalLeavesCache(ref _nonTerminalLeavesCache);
+			} else {
+				_nonTerminalLeavesCache = TreeNodeOperations.TraverseNodeForNonTerminalLeavesRecursively(this).ToList();
+			}
+			return _nonTerminalLeavesCache;
+		}
+
 		public void Expand()
 		{
 			if (IsTerminalNode && !IsLeafNode) { throw new InvalidOperationException("Only non-terminal leaf nodes can be expanded!"); }
@@ -81,11 +94,6 @@ namespace MSD.BasicSameGame.AI
 					scorerCopy.TotalMoves,
 					scorerCopy.TotalScore,
 					gameCopy.TileCount);
-		}
-
-		public IEnumerable<TreeNode> GetNonTerminalLeaves()
-		{
-			return TreeNodeOperations.TraverseNodeForNonTerminalLeavesRecursively(this);
 		}
 
 		public void Backpropagate()
@@ -159,6 +167,23 @@ namespace MSD.BasicSameGame.AI
 			path.Add(node.BestChild.SelectedCellFromPatent.Value);
 
 			GetPathToBestPlayoutRecursively(node.BestChild, ref path);
+		}
+
+		private static void UpdateNonTerminalLeavesCache(ref List<TreeNode> nodes)
+		{
+			List<TreeNode> newLeaves = new List<TreeNode>();
+			List<TreeNode> leavesToRemove = new List<TreeNode>();
+			foreach (TreeNode node in nodes) {
+				if (!node.IsLeafNode) {
+					leavesToRemove.Add(node);
+					IEnumerable<TreeNode> relativeLeaves = TreeNodeOperations.TraverseNodeForNonTerminalLeavesRecursively(node);
+					newLeaves.AddRange(relativeLeaves);
+				}
+			}
+
+			if (newLeaves.Count > 0 || leavesToRemove.Count > 0) {
+				nodes = nodes.Except(leavesToRemove).Union(newLeaves).ToList();
+			}
 		}
 	}
 }
