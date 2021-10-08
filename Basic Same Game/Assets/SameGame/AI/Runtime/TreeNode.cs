@@ -1,31 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace MSD.BasicSameGame.AI
 {
 	using GameLogic;
 
-	internal class TreeNode
+	internal class TreeNode : MCTS.MCTSTreeNode
 	{
 		private readonly SameGame _sameGame;
 
 		private readonly GameScorer _scorer;
 
-		private List<TreeNode> _children;
-
-		private List<TreeNode> _nonTerminalLeavesCache;
-
-		public bool IsRootNode => Parent == null;
-
-		public bool IsLeafNode => _children == null || _children.Count == 0;
-
-		public IReadOnlyList<TreeNode> Children => _children;
-
-		public bool IsTerminalNode { get; }
-
-		public TreeNode Parent { get; }
+		public new TreeNode Parent => base.Parent as TreeNode;
 
 		public Vector2Int? SelectedCellFromPatent { get; }
 
@@ -35,10 +23,17 @@ namespace MSD.BasicSameGame.AI
 
 		private PlayoutResult? Playout { get; set; }
 
-		public TreeNode(SameGame sameGame, GameScorer scorer)
+		public TreeNode(SameGame sameGame, GameScorer scorer) : this(sameGame, scorer, null, default) { }
+
+		public TreeNode(SameGame sameGame, GameScorer scorer, TreeNode parent, Vector2Int selectedCell)
+			: base (parent)
 		{
 			_sameGame = sameGame;
 			_scorer = scorer;
+
+			if (parent != null) {
+				SelectedCellFromPatent = selectedCell;
+			}
 
 			if (!sameGame.HasValidMoves()) {
 				IsTerminalNode = true;
@@ -50,29 +45,11 @@ namespace MSD.BasicSameGame.AI
 			}
 		}
 
-		public TreeNode(SameGame sameGame, GameScorer scorer, TreeNode parent, Vector2Int selectedCell)
-			: this(sameGame, scorer)
-		{
-			Parent = parent;
-			SelectedCellFromPatent = selectedCell;
-		}
-
-		public IEnumerable<TreeNode> GetNonTerminalLeaves()
-		{
-			if (_nonTerminalLeavesCache != null) {
-				UpdateNonTerminalLeavesCache(ref _nonTerminalLeavesCache);
-			} else {
-				_nonTerminalLeavesCache = TreeNodeOperations.TraverseNodeForNonTerminalLeavesRecursively(this).ToList();
-			}
-			return _nonTerminalLeavesCache;
-		}
-
-		public void Expand()
+		public override void Expand()
 		{
 			if (IsTerminalNode && !IsLeafNode) { throw new InvalidOperationException("Only non-terminal leaf nodes can be expanded!"); }
 
 			Vector2Int[][] groups = _sameGame.GetMatchingCells();
-			_children = new List<TreeNode>();
 
 			SimulationResult = null;
 
@@ -81,14 +58,14 @@ namespace MSD.BasicSameGame.AI
 			}
 		}
 
-		public void Simulate()
+		public override void Simulate()
 		{
 			if (IsTerminalNode && !IsLeafNode) { throw new InvalidOperationException("Only non-terminal leaf nodes can be simulated!"); }
 
 			SameGame gameCopy = new SameGame(_sameGame);
 			GameScorer scorerCopy = new GameScorer(_scorer);
 
-			SimulationResult = TreeNodeOperations.PlayoutRandomSimulation(gameCopy, scorerCopy);
+			SimulationResult = PlayoutRandomSimulation(gameCopy, scorerCopy);
 
 			Playout = new PlayoutResult(
 					scorerCopy.TotalMoves,
@@ -96,7 +73,7 @@ namespace MSD.BasicSameGame.AI
 					gameCopy.TileCount);
 		}
 
-		public void Backpropagate()
+		public override void Backpropagate()
 		{
 			if (!IsLeafNode) { throw new InvalidOperationException("Backpropagation must start on a leaf node!"); }
 
@@ -117,7 +94,7 @@ namespace MSD.BasicSameGame.AI
 
 		private bool TryUpdateBestChild(TreeNode child)
 		{
-			if (!_children.Contains(child)) { throw new ArgumentException("Not a child of this node.", nameof(child)); }
+			if (!Children.Contains(child)) { throw new ArgumentException("Not a child of this node.", nameof(child)); }
 
 			if (BestChild == null || BestChild.Playout.Value.TotalScore > child.Playout.Value.TotalScore) {
 				BestChild = child;
@@ -138,11 +115,22 @@ namespace MSD.BasicSameGame.AI
 			scorerCopy.RegisterMove(matchesCount);
 
 			TreeNode child = new TreeNode(gameCopy, scorerCopy, this, matchMember);
-			_children.Add(child);
 
 			if (child.IsTerminalNode) {
-				Debug.Log("Created terminal child. Backpropagating...");
+				Debug.Log("Created a terminal leaf child. Backpropagating...");
 				BackpropagateRecursively(child);
+			}
+		}
+
+		private static IEnumerable<Vector2Int> PlayoutRandomSimulation(SameGame sameGame, GameScorer scorer)
+		{
+			while (sameGame.HasValidMoves()) {
+				Vector2Int[][] matches = sameGame.GetMatchingCells();
+				int randomMatch = Random.Range(0, matches.Length - 1);
+				Vector2Int randomCell = matches[randomMatch][0];
+				yield return randomCell;
+				int matchesCount = sameGame.DestroyMatchingTilesFromCell(matches[randomMatch][0]);
+				scorer.RegisterMove(matchesCount);
 			}
 		}
 
@@ -167,23 +155,6 @@ namespace MSD.BasicSameGame.AI
 			path.Add(node.BestChild.SelectedCellFromPatent.Value);
 
 			GetPathToBestPlayoutRecursively(node.BestChild, ref path);
-		}
-
-		private static void UpdateNonTerminalLeavesCache(ref List<TreeNode> nodes)
-		{
-			List<TreeNode> newLeaves = new List<TreeNode>();
-			List<TreeNode> leavesToRemove = new List<TreeNode>();
-			foreach (TreeNode node in nodes) {
-				if (!node.IsLeafNode) {
-					leavesToRemove.Add(node);
-					IEnumerable<TreeNode> relativeLeaves = TreeNodeOperations.TraverseNodeForNonTerminalLeavesRecursively(node);
-					newLeaves.AddRange(relativeLeaves);
-				}
-			}
-
-			if (newLeaves.Count > 0 || leavesToRemove.Count > 0) {
-				nodes = nodes.Except(leavesToRemove).Union(newLeaves).ToList();
-			}
 		}
 	}
 }

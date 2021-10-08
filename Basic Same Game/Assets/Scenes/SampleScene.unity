@@ -471,7 +471,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 403884593}
         m_TargetAssemblyTypeName: MSD.BasicSameGame.View.SameGameView, Assembly-CSharp
-        m_MethodName: FinishWithBestMoves
+        m_MethodName: AutoComplete
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -549,8 +549,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0adb2d53308904fcca7916a31ae4f621, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _gridSize: {x: 8, y: 8}
-  _tileCount: 3
+  _gridSize: {x: 12, y: 12}
+  _tileCount: 4
   _minimumMatchCount: 3
   _scoreCalculator: {fileID: 11400000, guid: 8d741136bb8b645ad96fc05f9b313669, type: 2}
   _tilePrefabs:
@@ -587,6 +587,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 1
         m_CallState: 2
+      - m_Target: {fileID: 870148159}
+        m_TargetAssemblyTypeName: UnityEngine.UI.Selectable, UnityEngine.UI
+        m_MethodName: set_interactable
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
   _onGameOver:
     m_PersistentCalls:
       m_Calls:
@@ -603,6 +615,33 @@ MonoBehaviour:
           m_BoolArgument: 1
         m_CallState: 2
       - m_Target: {fileID: 402227577}
+        m_TargetAssemblyTypeName: UnityEngine.UI.Selectable, UnityEngine.UI
+        m_MethodName: set_interactable
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+  _onAutoCompleteStart:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 402227577}
+        m_TargetAssemblyTypeName: UnityEngine.UI.Selectable, UnityEngine.UI
+        m_MethodName: set_interactable
+        m_Mode: 6
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 870148159}
         m_TargetAssemblyTypeName: UnityEngine.UI.Selectable, UnityEngine.UI
         m_MethodName: set_interactable
         m_Mode: 6

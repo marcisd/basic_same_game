@@ -2,7 +2,8 @@
     "name": "MSD.BasicSameGame.AI",
     "rootNamespace": "",
     "references": [
-        "GUID:5bb7fb026fe31405bb42ce7e42c34355"
+        "GUID:5bb7fb026fe31405bb42ce7e42c34355",
+        "GUID:966d87b3dc0df4dacb01070f6db7dd4d"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

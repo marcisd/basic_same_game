@@ -31,6 +31,7 @@ namespace MSD.BasicSameGame.View
 		[Space]
 		[SerializeField] private UnityEvent _onGameStart;
 		[SerializeField] private UnityEvent _onGameOver;
+		[SerializeField] private UnityEvent _onAutoCompleteStart;
 		[SerializeField] private UnityEvent<string> _onScoreLabelUpdate;
 
 		[Header("AI")]
@@ -63,8 +64,9 @@ namespace MSD.BasicSameGame.View
 			GameReset(GameStart);
 		}
 
-		public void FinishWithBestMoves()
+		public void AutoComplete()
 		{
+			_onAutoCompleteStart.Invoke();
 			_isTouchDisabled = true;
 			MonteCarloTreeSearch mcts = new MonteCarloTreeSearch(_sameGame, _scorer);
 			IEnumerable<Vector2Int> moves = mcts.PerformSearch(_searchIterations);
@@ -120,7 +122,6 @@ namespace MSD.BasicSameGame.View
 		{
 			foreach (Vector2Int move in moves) {
 				SelectTile(move);
-				Debug.Log(move);
 				yield return new WaitForSeconds(1);
 			}
 		}
