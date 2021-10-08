@@ -68,7 +68,7 @@ namespace MSD.BasicSameGame.View
 		{
 			_onAutoCompleteStart.Invoke();
 			_isTouchDisabled = true;
-			MonteCarloTreeSearch mcts = new MonteCarloTreeSearch(_sameGame, _scorer);
+			BestMovesSearch mcts = new BestMovesSearch(_sameGame, _scorer);
 			IEnumerable<Vector2Int> moves = mcts.PerformSearch(_searchIterations);
 			StartCoroutine(Playout(moves));
 		}

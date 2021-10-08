@@ -14,6 +14,8 @@ namespace MSD.BasicSameGame.GameLogic
 
 		public bool HasValidMoves => _groups.Count > 0;
 
+		public int Count => _groups.Count;
+
 		public Vector2Int[][] Groups => _groups.Select(pair => pair.Value.ToArray()).ToArray();
 
 		public int BiggestMatch { get; private set; } = 0;

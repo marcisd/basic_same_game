@@ -21,7 +21,14 @@ namespace MCTS
 			return _nonTerminalLeavesCache;
 		}
 
-		public abstract void Expand();
+		public bool TryExpand()
+		{
+			Expand();
+			IsTerminalNode = Degree == 0;
+			return !IsTerminalNode;
+		}
+
+		protected abstract void Expand();
 
 		public abstract void Simulate();
 

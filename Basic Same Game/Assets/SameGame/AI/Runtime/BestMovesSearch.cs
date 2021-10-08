@@ -6,9 +6,9 @@ namespace MSD.BasicSameGame.AI
 {
 	using GameLogic;
 
-	public class MonteCarloTreeSearch : MCTS.MonteCarloTreeSearch
+	public class BestMovesSearch : MCTS.MonteCarloTreeSearch
 	{
-		public MonteCarloTreeSearch(SameGame sameGame, GameScorer scorer)
+		public BestMovesSearch(SameGame sameGame, GameScorer scorer)
 			: base(new TreeNode(new SameGame(sameGame), new GameScorer(scorer))) { }
 
 		public new IEnumerable<Vector2Int> PerformSearch(int iterations)

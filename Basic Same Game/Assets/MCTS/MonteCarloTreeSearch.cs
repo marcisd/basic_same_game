@@ -23,9 +23,10 @@ namespace MCTS
 					Debug.Log("Exhausted all possible outcomes!");
 					break;
 				}
-				MCTSTreeNode child = Expansion(leaf);
-				Simulation(child);
-				Backpropagation(child);
+				if (TryExpansion(leaf, out MCTSTreeNode child)) {
+					Simulation(child);
+					Backpropagation(child);
+				}
 			}
 
 			stopwatch.Stop();
@@ -42,7 +43,8 @@ namespace MCTS
 		/// The section below says more about a way of biasing choice of child nodes that lets the game tree
 		/// expand towards the most promising moves, which is the essence of Monte Carlo tree search.
 		/// </summary>
-		/// <returns>A leaf node L</returns>
+		/// <param name="leaf">The selected node L.</param>
+		/// <returns><c>true</c> if the selection yielded a result; <c>false</c> otherwise.</returns>
 		protected abstract bool TrySelection(out MCTSTreeNode leaf);
 
 		/// <summary>
@@ -50,12 +52,19 @@ namespace MCTS
 		/// create one (or more) child nodes and choose node C from one of them.
 		/// Child nodes are any valid moves from the game position defined by L.
 		/// </summary>
-		/// <returns>From the expanded node L, select a child node C.</returns>
-		private MCTSTreeNode Expansion(MCTSTreeNode leaf)
+		/// <param name="leaf">The selected node L.</param>
+		/// <param name="child">A child from the expanded node L.</param>
+		/// <returns><c>true</c> if the leaf node L was expanded; <c>false</c> otherwise.</returns>
+		private bool TryExpansion(MCTSTreeNode leaf, out MCTSTreeNode child)
 		{
-			leaf.Expand();
-			int rand = Random.Range(0, leaf.Children.Count - 1);
-			return leaf.Children[rand] as MCTSTreeNode;
+			if (leaf.TryExpand()) {
+				int rand = Random.Range(0, leaf.Degree - 1);
+				child = leaf.Children[rand] as MCTSTreeNode;
+				return true;
+			}
+			Debug.Log("Aborted expansion on an undesirable candidate.");
+			child = null;
+			return false;
 		}
 
 		/// <summary>
@@ -64,6 +73,7 @@ namespace MCTS
 		/// A playout may be as simple as choosing uniform random moves until the game is decided
 		/// (for example in chess, the game is won, lost, or drawn).
 		/// </summary>
+		/// <param name="child">A child from the expanded node L.</param>
 		private void Simulation(MCTSTreeNode child)
 		{
 			child.Simulate();
@@ -72,6 +82,7 @@ namespace MCTS
 		/// <summary>
 		/// Backpropagation: Use the result of the playout to update information in the nodes on the path from C to R.
 		/// </summary>
+		/// <param name="child">A child from the expanded node L.</param>
 		private void Backpropagation(MCTSTreeNode child)
 		{
 			child.Backpropagate();

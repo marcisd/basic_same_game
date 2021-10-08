@@ -26,6 +26,10 @@ namespace MSD.BasicSameGame.GameLogic
 
 		public Vector2Int GridSize => _grid.Size;
 
+		public int BiggestMatch => _matchCollector.BiggestMatch;
+
+		public int MatchesCount => _matchCollector.Count;
+
 		public SameGame(Vector2Int size, int tileTypeCount, int minimumMatchCount)
 		{
 			_grid = new Grid(size);
@@ -70,8 +74,6 @@ namespace MSD.BasicSameGame.GameLogic
 		public bool HasValidMoves() => _matchCollector.HasValidMoves;
 
 		public Vector2Int[][] GetMatchingCells() => _matchCollector.Groups;
-
-		public int GetBiggestMatch() => _matchCollector.BiggestMatch;
 
 		public int DestroyMatchingTilesFromCell(Vector2Int cellPosition)
 		{
