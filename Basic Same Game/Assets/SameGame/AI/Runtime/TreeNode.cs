@@ -50,11 +50,12 @@ namespace MSD.BasicSameGame.AI
 			if (IsTerminalNode && !IsLeafNode) { throw new InvalidOperationException("Only non-terminal leaf nodes can be expanded!"); }
 
 			Vector2Int[][] groups = _sameGame.GetMatchingCells();
+			int biggestMatch = _sameGame.GetBiggestMatch();
 
 			_simulationResult = null;
 
 			foreach (Vector2Int[] group in groups) {
-				CreateChildNode(group[0]);
+				CreateChildNode(group[0], biggestMatch);
 			}
 		}
 
@@ -104,12 +105,18 @@ namespace MSD.BasicSameGame.AI
 			return false;
 		}
 
-		private void CreateChildNode(Vector2Int matchMember)
+		private void CreateChildNode(Vector2Int matchMember, int biggestMatch)
 		{
 			SameGame gameCopy = new SameGame(_sameGame);
 			int matchesCount = gameCopy.DestroyMatchingTilesFromCell(matchMember);
 
 			if (matchesCount == 0) { throw new ArgumentException("Prameter should trigger a valid match!", nameof(matchMember)); }
+
+			int newBiggestMatch = gameCopy.GetBiggestMatch();
+			if (newBiggestMatch < biggestMatch) {
+				Debug.Log($"New biggest match {newBiggestMatch} is smaller than the parent's {biggestMatch}!");
+				return;
+			}
 
 			GameScorer scorerCopy = new GameScorer(_scorer);
 			scorerCopy.RegisterMove(matchesCount);

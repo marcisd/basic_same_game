@@ -16,7 +16,7 @@ namespace MSD.BasicSameGame.GameLogic
 
 		public Vector2Int[][] Groups => _groups.Select(pair => pair.Value.ToArray()).ToArray();
 
-		public int BiggestMatch => _groups.Select(pair => pair.Value.Count).OrderBy(count => count).Last();
+		public int BiggestMatch { get; private set; } = 0;
 
 		public MatchRegistry() { }
 
@@ -45,6 +45,7 @@ namespace MSD.BasicSameGame.GameLogic
 			_groups.Clear();
 			_groupMemberLookup.Clear();
 			_autoIndex = 0;
+			BiggestMatch = 0;
 		}
 
 		public void RegisterMatch(List<Vector2Int> matchingCells)
@@ -54,6 +55,7 @@ namespace MSD.BasicSameGame.GameLogic
 			foreach (Vector2Int cell in matchingCells) {
 				_groupMemberLookup.Add(cell, index);
 			}
+			BiggestMatch = Mathf.Max(BiggestMatch, matchingCells.Count);
 		}
 	}
 }
