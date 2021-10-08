@@ -28,7 +28,6 @@ namespace MSD.BasicSameGame.AI
 			MCTS.MCTSTreeNode[] leavesArr = nonTerminalLeaves.ToArray();
 			int rand = Random.Range(0, leavesArr.Length - 1);
 			leaf = leavesArr[rand];
-			Debug.Log($"Found {leavesArr.Length} leaves...");
 			return true;
 		}
 

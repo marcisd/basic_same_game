@@ -12,7 +12,7 @@ namespace MSD.BasicSameGame.GameLogic
 
 		private readonly int _minimumMatchCount;
 
-		private readonly MatchCollector _matchCollector = new MatchCollector();
+		private readonly MatchRegistry _matchCollector = new MatchRegistry();
 
 		public event Action<Vector2Int, int> OnTileCreated = delegate { };
 
@@ -41,7 +41,7 @@ namespace MSD.BasicSameGame.GameLogic
 			_minimumMatchCount = sameGame._minimumMatchCount;
 
 			_tileMap = new TileMap(sameGame._tileMap);
-			_matchCollector = new MatchCollector(sameGame._matchCollector);
+			_matchCollector = new MatchRegistry(sameGame._matchCollector);
 
 			IsInitialized = sameGame.IsInitialized;
 		}
@@ -70,6 +70,8 @@ namespace MSD.BasicSameGame.GameLogic
 		public bool HasValidMoves() => _matchCollector.HasValidMoves;
 
 		public Vector2Int[][] GetMatchingCells() => _matchCollector.Groups;
+
+		public int GetBiggestMatch() => _matchCollector.BiggestMatch;
 
 		public int DestroyMatchingTilesFromCell(Vector2Int cellPosition)
 		{

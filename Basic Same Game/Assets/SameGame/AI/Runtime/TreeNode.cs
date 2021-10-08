@@ -13,16 +13,16 @@ namespace MSD.BasicSameGame.AI
 
 		private readonly GameScorer _scorer;
 
+		private TreeNode _bestChild;
+
+		private IEnumerable<Vector2Int> _simulationResult;
+
+		private PlayoutResult? _playout;
+
 		public new TreeNode Parent => base.Parent as TreeNode;
 
 		public Vector2Int? SelectedCellFromPatent { get; }
-
-		private TreeNode BestChild { get; set; }
-
-		private IEnumerable<Vector2Int> SimulationResult { get; set; }
-
-		private PlayoutResult? Playout { get; set; }
-
+		
 		public TreeNode(SameGame sameGame, GameScorer scorer) : this(sameGame, scorer, null, default) { }
 
 		public TreeNode(SameGame sameGame, GameScorer scorer, TreeNode parent, Vector2Int selectedCell)
@@ -38,7 +38,7 @@ namespace MSD.BasicSameGame.AI
 			if (!sameGame.HasValidMoves()) {
 				IsTerminalNode = true;
 
-				Playout = new PlayoutResult(
+				_playout = new PlayoutResult(
 					_scorer.TotalMoves,
 					_scorer.TotalScore,
 					_sameGame.TileCount);
@@ -51,7 +51,7 @@ namespace MSD.BasicSameGame.AI
 
 			Vector2Int[][] groups = _sameGame.GetMatchingCells();
 
-			SimulationResult = null;
+			_simulationResult = null;
 
 			foreach (Vector2Int[] group in groups) {
 				CreateChildNode(group[0]);
@@ -65,9 +65,9 @@ namespace MSD.BasicSameGame.AI
 			SameGame gameCopy = new SameGame(_sameGame);
 			GameScorer scorerCopy = new GameScorer(_scorer);
 
-			SimulationResult = PlayoutRandomSimulation(gameCopy, scorerCopy);
+			_simulationResult = PlayoutRandomSimulation(gameCopy, scorerCopy);
 
-			Playout = new PlayoutResult(
+			_playout = new PlayoutResult(
 					scorerCopy.TotalMoves,
 					scorerCopy.TotalScore,
 					gameCopy.TileCount);
@@ -77,7 +77,7 @@ namespace MSD.BasicSameGame.AI
 		{
 			if (!IsLeafNode) { throw new InvalidOperationException("Backpropagation must start on a leaf node!"); }
 
-			if (Playout == null) { throw new InvalidOperationException("Starting leaf node must have a playout information to backpropagate!"); }
+			if (_playout == null) { throw new InvalidOperationException("Starting leaf node must have a playout information to backpropagate!"); }
 
 			BackpropagateRecursively(this);
 		}
@@ -96,9 +96,9 @@ namespace MSD.BasicSameGame.AI
 		{
 			if (!Children.Contains(child)) { throw new ArgumentException("Not a child of this node.", nameof(child)); }
 
-			if (BestChild == null || BestChild.Playout.Value.TotalScore > child.Playout.Value.TotalScore) {
-				BestChild = child;
-				Playout = child.Playout;
+			if (_bestChild == null || _bestChild._playout.Value.TotalScore > child._playout.Value.TotalScore) {
+				_bestChild = child;
+				_playout = child._playout;
 				return true;
 			}
 			return false;
@@ -147,14 +147,14 @@ namespace MSD.BasicSameGame.AI
 		{
 			if (node.IsTerminalNode) { return; }
 
-			if (node.SimulationResult != null) {
-				path.AddRange(node.SimulationResult);
+			if (node._simulationResult != null) {
+				path.AddRange(node._simulationResult);
 				return;
 			}
 
-			path.Add(node.BestChild.SelectedCellFromPatent.Value);
+			path.Add(node._bestChild.SelectedCellFromPatent.Value);
 
-			GetPathToBestPlayoutRecursively(node.BestChild, ref path);
+			GetPathToBestPlayoutRecursively(node._bestChild, ref path);
 		}
 	}
 }

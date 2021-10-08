@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace MSD.BasicSameGame.GameLogic
 {
-	internal class MatchCollector
+	internal class MatchRegistry
 	{
 		private readonly Dictionary<int, List<Vector2Int>> _groups = new Dictionary<int, List<Vector2Int>>();
 
@@ -16,9 +16,11 @@ namespace MSD.BasicSameGame.GameLogic
 
 		public Vector2Int[][] Groups => _groups.Select(pair => pair.Value.ToArray()).ToArray();
 
-		public MatchCollector() { }
+		public int BiggestMatch => _groups.Select(pair => pair.Value.Count).OrderBy(count => count).Last();
 
-		public MatchCollector(MatchCollector matchCollector)
+		public MatchRegistry() { }
+
+		public MatchRegistry(MatchRegistry matchCollector)
 		{
 			_groups = matchCollector._groups.ToDictionary(
 				entry => entry.Key,
