@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace MCTS
+namespace MSD.MCTS
 {
 	public abstract class MCTSTreeNode : TreeNode
 	{
@@ -21,14 +21,19 @@ namespace MCTS
 			return _nonTerminalLeavesCache;
 		}
 
-		public bool TryExpand()
+		public void SetTerminal()
 		{
-			Expand();
-			IsTerminalNode = Degree == 0;
-			return !IsTerminalNode;
+			IsTerminalNode = true;
 		}
 
-		protected abstract void Expand();
+		//public bool TryExpand()
+		//{
+		//	Expand();
+		//	IsTerminalNode = Degree == 0;
+		//	return !IsTerminalNode;
+		//}
+
+		//protected abstract void Expand();
 
 		public abstract void Simulate();
 

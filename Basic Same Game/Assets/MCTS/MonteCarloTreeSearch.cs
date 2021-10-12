@@ -1,15 +1,25 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
-namespace MCTS
+namespace MSD.MCTS
 {
 	public abstract class MonteCarloTreeSearch
 	{
 		protected readonly MCTSTreeNode _root;
 
-		public MonteCarloTreeSearch(MCTSTreeNode root)
+		private readonly ISelectionPolicy<MCTSTreeNode> _selectionPolicy;
+
+		private readonly IExpansionHeuristic<MCTSTreeNode> _expansionHeuristic;
+
+		public MonteCarloTreeSearch(MCTSTreeNode root,
+			ISelectionPolicy<MCTSTreeNode> selectionPolicy,
+			IExpansionHeuristic<MCTSTreeNode> expansionHeuristic)
 		{
 			_root = root;
+			_selectionPolicy = selectionPolicy;
+			_expansionHeuristic = expansionHeuristic;
 		}
 
 		public void PerformSearch(int iterations)
@@ -45,7 +55,16 @@ namespace MCTS
 		/// </summary>
 		/// <param name="leaf">The selected node L.</param>
 		/// <returns><c>true</c> if the selection yielded a result; <c>false</c> otherwise.</returns>
-		protected abstract bool TrySelection(out MCTSTreeNode leaf);
+		private bool TrySelection(out MCTSTreeNode leaf)
+		{
+			IEnumerable<MCTSTreeNode> nonTerminalLeaves = _root.GetNonTerminalLeaves();
+			if (nonTerminalLeaves.Any()) {
+				leaf = _selectionPolicy.Selection(nonTerminalLeaves);
+				return true;
+			}
+			leaf = null;
+			return false;
+		}
 
 		/// <summary>
 		/// Expansion: Unless L ends the game decisively (e.g. win/loss/draw) for either player,
@@ -57,7 +76,9 @@ namespace MCTS
 		/// <returns><c>true</c> if the leaf node L was expanded; <c>false</c> otherwise.</returns>
 		private bool TryExpansion(MCTSTreeNode leaf, out MCTSTreeNode child)
 		{
-			if (leaf.TryExpand()) {
+			_expansionHeuristic.Expansion(ref leaf);
+
+			if (leaf.Degree > 0) {
 				int rand = Random.Range(0, leaf.Degree - 1);
 				child = leaf.Children[rand] as MCTSTreeNode;
 				return true;

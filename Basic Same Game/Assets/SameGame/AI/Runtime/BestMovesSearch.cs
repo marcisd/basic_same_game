@@ -9,7 +9,9 @@ namespace MSD.BasicSameGame.AI
 	public class BestMovesSearch : MCTS.MonteCarloTreeSearch
 	{
 		public BestMovesSearch(SameGame sameGame, GameScorer scorer)
-			: base(new TreeNode(new SameGame(sameGame), new GameScorer(scorer))) { }
+			: base(new TreeNode(new SameGame(sameGame), new GameScorer(scorer)),
+				  new RandomSelectionPolicy() as MCTS.ISelectionPolicy<MCTS.MCTSTreeNode>,
+				  new TabuExpansionHeuristic() as MCTS.IExpansionHeuristic<MCTS.MCTSTreeNode>) { }
 
 		public new IEnumerable<Vector2Int> PerformSearch(int iterations)
 		{
@@ -17,20 +19,6 @@ namespace MSD.BasicSameGame.AI
 
 			return (_root as TreeNode).GetPathToBestPlayout();
 		}
-
-		protected override bool TrySelection(out MCTS.MCTSTreeNode leaf)
-		{
-			IEnumerable<MCTS.MCTSTreeNode> nonTerminalLeaves = _root.GetNonTerminalLeaves();
-			if (nonTerminalLeaves.Count() == 0) {
-				leaf = null;
-				return false;
-			}
-			MCTS.MCTSTreeNode[] leavesArr = nonTerminalLeaves.ToArray();
-			int rand = Random.Range(0, leavesArr.Length - 1);
-			leaf = leavesArr[rand];
-			return true;
-		}
-
 	}
 }
 

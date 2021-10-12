@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
-namespace MCTS
+namespace MSD.MCTS
 {
 	public class TreeNode
 	{

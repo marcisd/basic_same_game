@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -9,7 +10,6 @@ namespace MSD.BasicSameGame.View
 	using GameLogic;
 	using Modules.ObjectPool;
 	using AI;
-	using System.Collections;
 
 	public class SameGameView : MonoBehaviour
 	{

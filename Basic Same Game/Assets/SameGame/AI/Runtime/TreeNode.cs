@@ -9,9 +9,9 @@ namespace MSD.BasicSameGame.AI
 
 	internal class TreeNode : MCTS.MCTSTreeNode
 	{
-		private readonly SameGame _sameGame;
+		//private readonly SameGame _sameGame;
 
-		private readonly GameScorer _scorer;
+		//private readonly GameScorer _scorer;
 
 		private TreeNode _bestChild;
 
@@ -21,6 +21,10 @@ namespace MSD.BasicSameGame.AI
 
 		public new TreeNode Parent => base.Parent as TreeNode;
 
+		public SameGame sameGame { get; }
+
+		public GameScorer scorer { get; }
+
 		public Vector2Int? SelectedCellFromPatent { get; }
 		
 		public TreeNode(SameGame sameGame, GameScorer scorer) : this(sameGame, scorer, null, default) { }
@@ -28,8 +32,8 @@ namespace MSD.BasicSameGame.AI
 		public TreeNode(SameGame sameGame, GameScorer scorer, TreeNode parent, Vector2Int selectedCell)
 			: base (parent)
 		{
-			_sameGame = sameGame;
-			_scorer = scorer;
+			this.sameGame = sameGame;
+			this.scorer = scorer;
 
 			if (parent != null) {
 				SelectedCellFromPatent = selectedCell;
@@ -39,34 +43,23 @@ namespace MSD.BasicSameGame.AI
 				IsTerminalNode = true;
 
 				_playout = new PlayoutResult(
-					_scorer.TotalMoves,
-					_scorer.TotalScore,
-					_sameGame.TileCount);
+					scorer.TotalMoves,
+					scorer.TotalScore,
+					sameGame.TileCount);
 			}
 		}
 
-		protected override void Expand()
+		public void RemoveSimulationResult()
 		{
-			if (IsTerminalNode && !IsLeafNode) { throw new InvalidOperationException("Only non-terminal leaf nodes can be expanded!"); }
-
-			Vector2Int[][] groups = _sameGame.GetMatchingCells();
-			int biggestMatch = _sameGame.BiggestMatch;
-
 			_simulationResult = null;
-
-			foreach (Vector2Int[] group in groups) {
-				CreateChildNode(group[0], biggestMatch);
-			}
-
-			Debug.Log($"Only accepting {Degree} out of {_sameGame.MatchesCount} matches found.");
 		}
 
 		public override void Simulate()
 		{
 			if (IsTerminalNode && !IsLeafNode) { throw new InvalidOperationException("Only non-terminal leaf nodes can be simulated!"); }
 
-			SameGame gameCopy = new SameGame(_sameGame);
-			GameScorer scorerCopy = new GameScorer(_scorer);
+			SameGame gameCopy = new SameGame(sameGame);
+			GameScorer scorerCopy = new GameScorer(scorer);
 
 			_simulationResult = PlayoutRandomSimulation(gameCopy, scorerCopy);
 
@@ -105,26 +98,6 @@ namespace MSD.BasicSameGame.AI
 				return true;
 			}
 			return false;
-		}
-
-		private void CreateChildNode(Vector2Int matchMember, int biggestMatch)
-		{
-			SameGame gameCopy = new SameGame(_sameGame);
-			int matchesCount = gameCopy.DestroyMatchingTilesFromCell(matchMember);
-
-			if (matchesCount == 0) { throw new ArgumentException("Prameter should trigger a valid match!", nameof(matchMember)); }
-
-			if (gameCopy.BiggestMatch < biggestMatch) { return; }
-
-			GameScorer scorerCopy = new GameScorer(_scorer);
-			scorerCopy.RegisterMove(matchesCount);
-
-			TreeNode child = new TreeNode(gameCopy, scorerCopy, this, matchMember);
-
-			if (child.IsTerminalNode) {
-				Debug.Log("Created a terminal leaf child. Backpropagating...");
-				BackpropagateRecursively(child);
-			}
 		}
 
 		private static IEnumerable<Vector2Int> PlayoutRandomSimulation(SameGame sameGame, GameScorer scorer)
