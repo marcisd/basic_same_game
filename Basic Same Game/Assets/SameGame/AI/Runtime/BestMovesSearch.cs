@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace MSD.BasicSameGame.AI
@@ -10,8 +9,8 @@ namespace MSD.BasicSameGame.AI
 	{
 		public BestMovesSearch(SameGame sameGame, GameScorer scorer)
 			: base(new TreeNode(new SameGame(sameGame), new GameScorer(scorer)),
-				  new RandomSelectionPolicy() as MCTS.ISelectionPolicy<MCTS.MCTSTreeNode>,
-				  new TabuExpansionHeuristic() as MCTS.IExpansionHeuristic<MCTS.MCTSTreeNode>) { }
+				  new RandomSelectionPolicy(),
+				  new GreedyExpansionHeuristic()) { }
 
 		public new IEnumerable<Vector2Int> PerformSearch(int iterations)
 		{
@@ -21,4 +20,3 @@ namespace MSD.BasicSameGame.AI
 		}
 	}
 }
-

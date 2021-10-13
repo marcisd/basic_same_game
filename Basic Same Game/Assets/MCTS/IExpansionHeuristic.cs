@@ -6,8 +6,8 @@ namespace MSD.MCTS
 	/// When an algorithm uses a heuristic, it no longer needs to exhaustively search every possible solution,
 	/// so it can find approximate solutions more quickly. A heuristic is a shortcut that sacrifices accuracy and completeness.
 	/// </summary>
-	public interface IExpansionHeuristic<TMCTSTreeNode> where TMCTSTreeNode : MCTSTreeNode
+	public interface IExpansionHeuristic
 	{
-		void Expansion(ref TMCTSTreeNode nonTerminalLeaf);
+		void Expansion(MCTSTreeNode nonTerminalLeaf);
 	}
 }

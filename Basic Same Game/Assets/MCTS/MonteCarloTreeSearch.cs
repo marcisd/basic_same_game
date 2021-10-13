@@ -1,21 +1,23 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Stopwatch = System.Diagnostics.Stopwatch;
+using Random = UnityEngine.Random;
 
 namespace MSD.MCTS
 {
 	public abstract class MonteCarloTreeSearch
 	{
+		private readonly ISelectionPolicy _selectionPolicy;
+
+		private readonly IExpansionHeuristic _expansionHeuristic;
+
 		protected readonly MCTSTreeNode _root;
 
-		private readonly ISelectionPolicy<MCTSTreeNode> _selectionPolicy;
-
-		private readonly IExpansionHeuristic<MCTSTreeNode> _expansionHeuristic;
-
 		public MonteCarloTreeSearch(MCTSTreeNode root,
-			ISelectionPolicy<MCTSTreeNode> selectionPolicy,
-			IExpansionHeuristic<MCTSTreeNode> expansionHeuristic)
+			ISelectionPolicy selectionPolicy,
+			IExpansionHeuristic expansionHeuristic)
 		{
 			_root = root;
 			_selectionPolicy = selectionPolicy;
@@ -76,7 +78,9 @@ namespace MSD.MCTS
 		/// <returns><c>true</c> if the leaf node L was expanded; <c>false</c> otherwise.</returns>
 		private bool TryExpansion(MCTSTreeNode leaf, out MCTSTreeNode child)
 		{
-			_expansionHeuristic.Expansion(ref leaf);
+			if (leaf.IsTerminalNode && !leaf.IsLeafNode) { throw new InvalidOperationException("Only non-terminal leaf nodes can be expanded!"); }
+
+			_expansionHeuristic.Expansion(leaf);
 
 			if (leaf.Degree > 0) {
 				int rand = Random.Range(0, leaf.Degree - 1);

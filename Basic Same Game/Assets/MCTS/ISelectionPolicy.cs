@@ -7,8 +7,8 @@ namespace MSD.MCTS
 	/// (explored part of the game tree as opposed to the vast unexplored bottom part).
 	/// One important consideration of such policy is the balance of exploration vs exploitation.
 	/// </summary>
-	public interface ISelectionPolicy<TMCTSTreeNode> where TMCTSTreeNode : MCTSTreeNode
+	public interface ISelectionPolicy
 	{
-		TMCTSTreeNode Selection(IEnumerable<TMCTSTreeNode> nonTerminalLeaves);
+		MCTSTreeNode Selection(IEnumerable<MCTSTreeNode> nonTerminalLeaves);
 	}
 }
