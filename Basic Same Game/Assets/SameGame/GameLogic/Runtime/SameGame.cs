@@ -54,10 +54,10 @@ namespace MSD.BasicSameGame.GameLogic
 		{
 			if (IsInitialized) { return; }
 
-			var allCells = _grid.AllCells();
+			IEnumerator<Vector2Int> allCells = _grid.AllCells();
 			while(allCells.MoveNext()) {
 				_tileMap.RandomizeTileForCell(allCells.Current);
-				OnTileCreated.Invoke(allCells.Current, _tileMap[allCells.Current]);
+				OnTileCreated(allCells.Current, _tileMap[allCells.Current]);
 			}
 
 			CalculateTileDetails();
@@ -159,7 +159,7 @@ namespace MSD.BasicSameGame.GameLogic
 
 			for (int i = 0; i < originalPositionVertical.Count; i++) {
 				_tileMap.SwapTile(originalPositionVertical[i], newPositionVertical[i]);
-				OnTileMoved.Invoke(originalPositionVertical[i], newPositionVertical[i]);
+				OnTileMoved(originalPositionVertical[i], newPositionVertical[i]);
 			}
 		}
 
