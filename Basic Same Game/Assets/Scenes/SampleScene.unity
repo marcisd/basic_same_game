@@ -680,7 +680,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-  _searchIterations: 2000
+  _searchIterations: 1000
   _isTouchDisabled: 0
 --- !u!4 &403884594
 Transform:

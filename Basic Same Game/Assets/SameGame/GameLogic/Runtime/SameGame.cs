@@ -54,10 +54,11 @@ namespace MSD.BasicSameGame.GameLogic
 		{
 			if (IsInitialized) { return; }
 
-			_grid.ForEachCell((position) => {
-				_tileMap.RandomizeTileForCell(position);
-				OnTileCreated.Invoke(position, _tileMap[position]);
-			});
+			var allCells = _grid.AllCells();
+			while(allCells.MoveNext()) {
+				_tileMap.RandomizeTileForCell(allCells.Current);
+				OnTileCreated.Invoke(allCells.Current, _tileMap[allCells.Current]);
+			}
 
 			CalculateTileDetails();
 
@@ -132,7 +133,7 @@ namespace MSD.BasicSameGame.GameLogic
 
 			matchingCells.Add(cellPosition);
 
-			IEnumerator<Vector2Int> adjoinedCells = _grid.GetAdjoinedCellsEnumerator(cellPosition);
+			IEnumerator<Vector2Int> adjoinedCells = _grid.GetAdjoinedCells(cellPosition);
 			while (adjoinedCells.MoveNext()) {
 				CheckMatchingAdjoinedTilesFromCellRecursively(adjoinedCells.Current, tileType, ref visitedCells, ref matchingCells);
 			}
