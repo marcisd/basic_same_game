@@ -7,7 +7,7 @@ namespace MSD.BasicSameGame.GameLogic
 	/// <summary>
 	/// A 2D grid with origin <c>(0, 0)</c> at bottom left.
 	/// </summary>
-	internal struct Grid
+	internal struct Grid : IEquatable<Grid>
 	{
 		public Vector2Int Size { get; }
 
@@ -83,6 +83,11 @@ namespace MSD.BasicSameGame.GameLogic
 			if (cellPosition.x > 0) {
 				yield return new Vector2Int(cellPosition.x - 1, cellPosition.y);
 			}
+		}
+
+		public bool Equals(Grid other)
+		{
+			return Size == other.Size;
 		}
 	}
 }
