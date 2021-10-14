@@ -41,7 +41,7 @@ namespace MSD.Modules.ObjectPool
 
         public void Despawn<T>(T instance, Action onDespawn) where T : MonoBehaviour, IPoolable
         {
-            if (gameObject == null || !gameObject.activeInHierarchy) return;
+            if (gameObject == null || !gameObject.activeInHierarchy) { return; }
 
             if (TryGetInstanceLookupValue(instance.transform, out int prefabId)) {
 				if (_poolDictionary.TryGetValue(prefabId, out List<Transform> pool)) {

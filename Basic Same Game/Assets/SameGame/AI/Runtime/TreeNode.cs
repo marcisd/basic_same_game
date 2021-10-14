@@ -9,10 +9,6 @@ namespace MSD.BasicSameGame.AI
 
 	internal class TreeNode : MCTS.MCTSTreeNode
 	{
-		//private readonly SameGame _sameGame;
-
-		//private readonly GameScorer _scorer;
-
 		private TreeNode _bestChild;
 
 		private IEnumerable<Vector2Int> _simulationResult;

@@ -26,15 +26,6 @@ namespace MSD.MCTS
 			IsTerminalNode = true;
 		}
 
-		//public bool TryExpand()
-		//{
-		//	Expand();
-		//	IsTerminalNode = Degree == 0;
-		//	return !IsTerminalNode;
-		//}
-
-		//protected abstract void Expand();
-
 		public abstract void Simulate();
 
 		public abstract void Backpropagate();

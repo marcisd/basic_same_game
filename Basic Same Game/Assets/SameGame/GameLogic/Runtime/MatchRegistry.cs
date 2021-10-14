@@ -10,7 +10,7 @@ namespace MSD.BasicSameGame.GameLogic
 
 		private readonly Dictionary<Vector2Int, int> _groupMemberLookup = new Dictionary<Vector2Int, int>();
 
-		private int _autoIndex = 0;
+		private int _autoIndex;
 
 		public bool HasValidMoves => _groups.Count > 0;
 
@@ -18,7 +18,7 @@ namespace MSD.BasicSameGame.GameLogic
 
 		public Vector2Int[][] Groups => _groups.Select(pair => pair.Value.ToArray()).ToArray();
 
-		public int BiggestMatch { get; private set; } = 0;
+		public int BiggestMatch { get; private set; }
 
 		public MatchRegistry() { }
 

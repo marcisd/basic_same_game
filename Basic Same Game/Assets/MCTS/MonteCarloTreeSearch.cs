@@ -15,7 +15,7 @@ namespace MSD.MCTS
 
 		protected readonly MCTSTreeNode _root;
 
-		public MonteCarloTreeSearch(MCTSTreeNode root,
+		protected MonteCarloTreeSearch(MCTSTreeNode root,
 			ISelectionPolicy selectionPolicy,
 			IExpansionHeuristic expansionHeuristic)
 		{

@@ -42,7 +42,8 @@ namespace MSD.BasicSameGame.View
 
 		private SameGame _sameGame;
 		private GameScorer _scorer;
-		private Dictionary<Vector2Int, TileController> _activeTiles = new Dictionary<Vector2Int, TileController>();
+
+		private readonly Dictionary<Vector2Int, TileController> _activeTiles = new Dictionary<Vector2Int, TileController>();
 
 		public Vector2Int GridSize => _gridSize;
 
