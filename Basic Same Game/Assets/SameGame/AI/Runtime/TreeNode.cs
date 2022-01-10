@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -35,7 +36,7 @@ namespace MSD.BasicSameGame.AI
 				SelectedCellFromPatent = selectedCell;
 			}
 
-			if (!sameGame.HasValidMoves()) {
+			if (!sameGame.HasValidMoves) {
 				IsTerminalNode = true;
 
 				_playout = new PlayoutResult(
@@ -98,12 +99,12 @@ namespace MSD.BasicSameGame.AI
 
 		private static IEnumerable<Vector2Int> PlayoutRandomSimulation(SameGame sameGame, GameScorer scorer)
 		{
-			while (sameGame.HasValidMoves()) {
-				Vector2Int[][] matches = sameGame.GetMatchingCells();
+			while (sameGame.HasValidMoves) {
+				Vector2Int[] matches = sameGame.GetMatchRepresentatives().Keys.ToArray();
 				int randomMatch = Random.Range(0, matches.Length - 1);
-				Vector2Int randomCell = matches[randomMatch][0];
+				Vector2Int randomCell = matches[randomMatch];
 				yield return randomCell;
-				int matchesCount = sameGame.DestroyMatchingTilesFromCell(matches[randomMatch][0]);
+				int matchesCount = sameGame.DestroyMatchingTilesFromCell(matches[randomMatch]);
 				scorer.RegisterMove(matchesCount);
 			}
 		}

@@ -163,7 +163,7 @@ namespace MSD.BasicSameGame.View
 				_scorer.RegisterMove(tilesDestroyed);
 				UpdateScore(_scorer.TotalScore);
 
-				if (!_sameGame.HasValidMoves()) {
+				if (!_sameGame.HasValidMoves) {
 					_onGameOver.Invoke();
 				}
 			}

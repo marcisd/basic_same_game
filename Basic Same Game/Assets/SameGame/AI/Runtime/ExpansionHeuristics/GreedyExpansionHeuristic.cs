@@ -45,28 +45,28 @@ namespace MSD.BasicSameGame.AI
 
 		private List<NextMoveState> GetStatesForExpansion(TreeNode leaf)
 		{
-			Vector2Int[][] groups = leaf.sameGame.GetMatchingCells();
-			var tabuChoices = groups.Where(group => group.Length < leaf.sameGame.BiggestMatch);
+			Dictionary<Vector2Int, int> representatives = leaf.sameGame.GetMatchRepresentatives();
+			IEnumerable<KeyValuePair<Vector2Int, int>> tabuChoices = representatives.Where(rep => rep.Value < leaf.sameGame.BiggestMatch);
 
 			if (!tabuChoices.Any()) {
 
-				return groups.Select(group => {
+				return representatives.Select(rep => {
 					SameGame gameCopy = new SameGame(leaf.sameGame);
-					int matchCount = gameCopy.DestroyMatchingTilesFromCell(group[0]);
-					return new NextMoveState(gameCopy, group[0], matchCount);
+					int matchCount = gameCopy.DestroyMatchingTilesFromCell(rep.Key);
+					return new NextMoveState(gameCopy, rep.Key, matchCount);
 				}).ToList();
 			} else {
 				List<NextMoveState> forExpansionGreater = new List<NextMoveState>();
 				List<NextMoveState> forExpansionEqual = new List<NextMoveState>();
 
-				foreach (Vector2Int[] group in tabuChoices) {
+				foreach (KeyValuePair<Vector2Int, int> rep in tabuChoices) {
 					SameGame gameCopy = new SameGame(leaf.sameGame);
-					int matchCount = gameCopy.DestroyMatchingTilesFromCell(group[0]);
+					int matchCount = gameCopy.DestroyMatchingTilesFromCell(rep.Key);
 
 					if (gameCopy.BiggestMatch > leaf.sameGame.BiggestMatch) {
-						forExpansionGreater.Add(new NextMoveState(gameCopy, group[0], matchCount));
+						forExpansionGreater.Add(new NextMoveState(gameCopy, rep.Key, matchCount));
 					} else if (gameCopy.BiggestMatch == leaf.sameGame.BiggestMatch) {
-						forExpansionEqual.Add(new NextMoveState(gameCopy, group[0], matchCount));
+						forExpansionEqual.Add(new NextMoveState(gameCopy, rep.Key, matchCount));
 					}
 				}
 

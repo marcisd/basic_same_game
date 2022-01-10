@@ -12,6 +12,10 @@ namespace MSD.BasicSameGame.GameLogic
 
         private readonly int[,] _tiles;
 
+        public int SizeX => _tiles.GetLength(0);
+
+        public int SizeY => _tiles.GetLength(1);
+
         public int this[Vector2Int cellPosition] {
             get { return _tiles[cellPosition.x, cellPosition.y]; }
             private set {
@@ -21,6 +25,8 @@ namespace MSD.BasicSameGame.GameLogic
 
         public TileMap(Vector2Int size, int tileTypeCount)
         {
+            if (size.x == 0 || size.y == 0) throw new ArgumentException("Tile map size cannot be empoty!", nameof(size));
+
             _tileTypeCount = tileTypeCount;
             _tiles = new int[size.x, size.y];
         }
