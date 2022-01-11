@@ -97,9 +97,9 @@ namespace MSD.BasicSameGame.GameLogic
 
 		private void ApplyGravity()
 		{
-			ApplyGravityVertically(out List<Vector2Int> originalPositionVertical, out List<Vector2Int> newPositionVertical, out bool[] columnEmptiness);
+			SnowballVertically(out List<Vector2Int> originalPositionVertical, out List<Vector2Int> newPositionVertical, out bool[] columnEmptiness);
 
-			ApplyGravityHorizontally(in columnEmptiness, out List<Vector2Int> originalPositionHorizontal, out List<Vector2Int> newPositionHorizontal);
+			SnowballHorizontally(in columnEmptiness, out List<Vector2Int> originalPositionHorizontal, out List<Vector2Int> newPositionHorizontal);
 
 			MergeNewPositions(ref originalPositionVertical, ref newPositionVertical, in originalPositionHorizontal, in newPositionHorizontal);
 
@@ -111,19 +111,19 @@ namespace MSD.BasicSameGame.GameLogic
 			}
 		}
 
-		private void ApplyGravityVertically(out List<Vector2Int> originalPosition, out List<Vector2Int> newPosition, out bool[] columnEmptiness)
+		private void SnowballVertically(out List<Vector2Int> originalPosition, out List<Vector2Int> newPosition, out bool[] columnEmptiness)
 		{
 			originalPosition = new List<Vector2Int>();
 			newPosition = new List<Vector2Int>();
 			columnEmptiness = new bool[_tileMap.SizeX];
 
 			for (int i = 0; i < _tileMap.SizeX; i++) {
-				ApplyGravityVerticallyForColumn(i, ref originalPosition, ref newPosition, out bool isEmptyColumn);
+				SnowballVerticallyForColumn(i, ref originalPosition, ref newPosition, out bool isEmptyColumn);
 				columnEmptiness[i] = isEmptyColumn;
 			}
 		}
 
-		private void ApplyGravityVerticallyForColumn(in int column, ref List<Vector2Int> originalPosition, ref List<Vector2Int> newPosition, out bool isEmptyColumn)
+		private void SnowballVerticallyForColumn(in int column, ref List<Vector2Int> originalPosition, ref List<Vector2Int> newPosition, out bool isEmptyColumn)
 		{
 			int[] col = _tileMap.CopyColumn(column);
 			int fast = 0;
@@ -150,7 +150,7 @@ namespace MSD.BasicSameGame.GameLogic
 			isEmptyColumn = slow == 0;
 		}
 
-		private void ApplyGravityHorizontally(in bool[] columnEmptiness, out List<Vector2Int> originalPosition, out List<Vector2Int> newPosition)
+		private void SnowballHorizontally(in bool[] columnEmptiness, out List<Vector2Int> originalPosition, out List<Vector2Int> newPosition)
 		{
 			originalPosition = new List<Vector2Int>();
 			newPosition = new List<Vector2Int>();
@@ -168,10 +168,10 @@ namespace MSD.BasicSameGame.GameLogic
 
 						for (int i = 0; i < _tileMap.SizeY; i++) {
 							Vector2Int origPos = new Vector2Int(fast, i);
-							Vector2Int newPos = new Vector2Int(slow, i);
 
 							if (_tileMap.IsEmptyCell(origPos)) { continue; }
 
+							Vector2Int newPos = new Vector2Int(slow, i);
 							originalPosition.Add(origPos);
 							newPosition.Add(newPos);
 						}
