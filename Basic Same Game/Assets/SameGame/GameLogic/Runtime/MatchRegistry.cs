@@ -116,7 +116,7 @@ namespace MSD.BasicSameGame.GameLogic
 						}
 					}
 
-					if (tileMap[me] == 0 && !_parentsOfEmpty.Contains(meParent)) {
+					if (tileMap[me] == 0) {
 						_parentsOfEmpty.Add(meParent);
 					}
 				}

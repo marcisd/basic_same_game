@@ -97,9 +97,9 @@ namespace MSD.BasicSameGame.GameLogic
 
 		private void ApplyGravity()
 		{
-			ApplyGravityVertically(out List<Vector2Int> originalPositionVertical, out List<Vector2Int> newPositionVertical);
+			ApplyGravityVertically(out List<Vector2Int> originalPositionVertical, out List<Vector2Int> newPositionVertical, out bool[] columnEmptiness);
 
-			ApplyGravityHorizontally(out List<Vector2Int> originalPositionHorizontal, out List<Vector2Int> newPositionHorizontal);
+			ApplyGravityHorizontally(in columnEmptiness, out List<Vector2Int> originalPositionHorizontal, out List<Vector2Int> newPositionHorizontal);
 
 			MergeNewPositions(ref originalPositionVertical, ref newPositionVertical, in originalPositionHorizontal, in newPositionHorizontal);
 
@@ -111,89 +111,74 @@ namespace MSD.BasicSameGame.GameLogic
 			}
 		}
 
-		private void ApplyGravityVertically(out List<Vector2Int> originalPosition, out List<Vector2Int> newPosition)
+		private void ApplyGravityVertically(out List<Vector2Int> originalPosition, out List<Vector2Int> newPosition, out bool[] columnEmptiness)
 		{
 			originalPosition = new List<Vector2Int>();
 			newPosition = new List<Vector2Int>();
+			columnEmptiness = new bool[_tileMap.SizeX];
 
 			for (int i = 0; i < _tileMap.SizeX; i++) {
-				ApplyGravityVerticallyForColumn(i, _tileMap.SizeY, ref originalPosition, ref newPosition);
+				ApplyGravityVerticallyForColumn(i, ref originalPosition, ref newPosition, out bool isEmptyColumn);
+				columnEmptiness[i] = isEmptyColumn;
 			}
 		}
 
-		private void ApplyGravityVerticallyForColumn(in int column, in int size, ref List<Vector2Int> originalPosition, ref List<Vector2Int> newPosition)
+		private void ApplyGravityVerticallyForColumn(in int column, ref List<Vector2Int> originalPosition, ref List<Vector2Int> newPosition, out bool isEmptyColumn)
 		{
-			GetEmptyAndFloatingCellsForColumn(column, size, out Queue<int> floatingCells, out List<int> emptyCells);
+			int[] col = _tileMap.CopyColumn(column);
+			int fast = 0;
+			int slow = 0;
 
-			while (floatingCells.Count > 0) {
-				int floatingYPos = floatingCells.Dequeue();
-				int emptyYPos = emptyCells[0];
-
-				originalPosition.Add(new Vector2Int(column, floatingYPos));
-				newPosition.Add(new Vector2Int(column, emptyYPos));
-
-				emptyCells.RemoveAt(0);
-				emptyCells.Add(floatingYPos);
-				emptyCells.Sort();
-			}
-		}
-
-		private void GetEmptyAndFloatingCellsForColumn(in int column, in int size, out Queue<int> floatingCells, out List<int> emptyCells)
-		{
-			floatingCells = new Queue<int>();
-			emptyCells = new List<int>();
-
-			for (int i = 0; i < size; i++) {
-				Vector2Int cellPos = new Vector2Int(column, i);
-
-				if (_tileMap.IsEmptyCell(cellPos)) {
-					emptyCells.Add(i);
+			while (fast < col.Length) {
+				if (col[fast] == 0) {
+					fast++;
 				} else {
-					if (emptyCells.Count > 0) {
-						floatingCells.Enqueue(i);
+					if (fast == slow) {
+						fast++;
+						slow++;
+					} else {
+						originalPosition.Add(new Vector2Int(column, fast));
+						newPosition.Add(new Vector2Int(column, slow));
+
+						int temp = col[fast];
+						col[fast++] = col[slow];
+						col[slow++] = temp;
 					}
 				}
 			}
+
+			isEmptyColumn = slow == 0;
 		}
 
-		private void ApplyGravityHorizontally(out List<Vector2Int> originalPosition, out List<Vector2Int> newPosition)
+		private void ApplyGravityHorizontally(in bool[] columnEmptiness, out List<Vector2Int> originalPosition, out List<Vector2Int> newPosition)
 		{
 			originalPosition = new List<Vector2Int>();
 			newPosition = new List<Vector2Int>();
+			int fast = 0;
+			int slow = 0;
 
-			GetGapAndFillerColumns(out Queue<int> fillerColumns, out List<int> gapColumns);
-
-			while (fillerColumns.Count > 0) {
-				int fillerXPos = fillerColumns.Dequeue();
-				int gapYPos = gapColumns[0];
-
-				for (int i = 0; i < _tileMap.SizeY; i++) {
-					Vector2Int origPos = new Vector2Int(fillerXPos, i);
-					Vector2Int newPos = new Vector2Int(gapYPos, i);
-
-					if (_tileMap.IsEmptyCell(origPos)) { continue; }
-
-					originalPosition.Add(origPos);
-					newPosition.Add(newPos);
-				}
-
-				gapColumns.RemoveAt(0);
-				gapColumns.Add(fillerXPos);
-				gapColumns.Sort();
-			}
-		}
-
-		private void GetGapAndFillerColumns(out Queue<int> fillerColumns, out List<int> gapColumns)
-		{
-			fillerColumns = new Queue<int>();
-			gapColumns = new List<int>();
-
-			for (int i = 0; i < _tileMap.SizeX; i++) {
-				if (_tileMap.IsEmptyColumn(i)) {
-					gapColumns.Add(i);
+			while (fast < columnEmptiness.Length) {
+				if (columnEmptiness[fast]) {
+					fast++;
 				} else {
-					if (gapColumns.Count > 0) {
-						fillerColumns.Enqueue(i);
+					if (fast == slow) {
+						fast++;
+						slow++;
+					} else {
+
+						for (int i = 0; i < _tileMap.SizeY; i++) {
+							Vector2Int origPos = new Vector2Int(fast, i);
+							Vector2Int newPos = new Vector2Int(slow, i);
+
+							if (_tileMap.IsEmptyCell(origPos)) { continue; }
+
+							originalPosition.Add(origPos);
+							newPosition.Add(newPos);
+						}
+
+						bool temp = columnEmptiness[fast];
+						columnEmptiness[fast++] = columnEmptiness[slow];
+						columnEmptiness[slow++] = temp;
 					}
 				}
 			}
