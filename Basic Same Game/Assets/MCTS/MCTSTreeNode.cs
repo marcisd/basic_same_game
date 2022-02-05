@@ -14,7 +14,7 @@ namespace MSD.MCTS
 		public IEnumerable<MCTSTreeNode> GetNonTerminalLeaves()
 		{
 			if (_nonTerminalLeavesCache == null) {
-				_nonTerminalLeavesCache = TraverseNodeForNonTerminalLeavesRecursively(this).ToList();
+				_nonTerminalLeavesCache = TraverseNodeForNonTerminalLeaves(this).ToList();
 			} else {
 				UpdateNonTerminalLeavesCache(ref _nonTerminalLeavesCache);
 			}
@@ -30,18 +30,24 @@ namespace MSD.MCTS
 
 		public abstract void Backpropagate();
 
-		private static IEnumerable<MCTSTreeNode> TraverseNodeForNonTerminalLeavesRecursively(MCTSTreeNode node)
+		private static IEnumerable<MCTSTreeNode> TraverseNodeForNonTerminalLeaves(MCTSTreeNode node)
 		{
 			if (node.IsTerminalNode) {
 				yield break;
 			}
 
-			if (node.IsLeafNode) {
-				yield return node;
-			} else {
-				foreach (MCTSTreeNode child in node.Children) {
-					foreach (MCTSTreeNode leaf in TraverseNodeForNonTerminalLeavesRecursively(child)) {
-						yield return leaf;
+			Queue<MCTSTreeNode> queue = new Queue<MCTSTreeNode>();
+			queue.Enqueue(node);
+
+			while (queue.Count > 0) {
+
+				MCTSTreeNode n = queue.Dequeue();
+
+				if (n.IsLeafNode) {
+					yield return node;
+				} else {
+					foreach (MCTSTreeNode child in n.Children) {
+						queue.Enqueue(child);
 					}
 				}
 			}
@@ -52,7 +58,7 @@ namespace MSD.MCTS
 			List<MCTSTreeNode> newLeaves = new List<MCTSTreeNode>();
 			IEnumerable<MCTSTreeNode> leavesToRemove = nodes.Where(n => !n.IsLeafNode);
 			foreach (MCTSTreeNode oldLeaf in leavesToRemove) {
-				IEnumerable<MCTSTreeNode> relativeLeaves = TraverseNodeForNonTerminalLeavesRecursively(oldLeaf);
+				IEnumerable<MCTSTreeNode> relativeLeaves = TraverseNodeForNonTerminalLeaves(oldLeaf);
 				newLeaves.AddRange(relativeLeaves);
 			}
 

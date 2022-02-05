@@ -72,15 +72,14 @@ namespace MSD.BasicSameGame.AI
 
 			if (_playout == null) { throw new InvalidOperationException("Starting leaf node must have a playout information to backpropagate!"); }
 
-			BackpropagateRecursively(this);
+			Backpropagate(this);
 		}
 
 		public IEnumerable<Vector2Int> GetPathToBestPlayout()
 		{
 			if (!IsRootNode) { throw new InvalidOperationException("Operation must start from the root node!"); }
 
-			List<Vector2Int> path = new List<Vector2Int>();
-			GetPathToBestPlayoutRecursively(this, ref path);
+			List<Vector2Int> path = GetPathToBestPlayout(this);
 
 			return path;
 		}
@@ -109,27 +108,35 @@ namespace MSD.BasicSameGame.AI
 			}
 		}
 
-		private static void BackpropagateRecursively(TreeNode node)
+		private static void Backpropagate(TreeNode node)
 		{
-			if (node.IsRootNode) { return; }
+			while (!node.IsRootNode) {
 
-			if (node.Parent.TryUpdateBestChild(node)) {
-				BackpropagateRecursively(node.Parent);
+				if (!node.Parent.TryUpdateBestChild(node)) {
+					break;
+				}
+
+				node = node.Parent;
 			}
 		}
 
-		private static void GetPathToBestPlayoutRecursively(TreeNode node, ref List<Vector2Int> path)
+		private static List<Vector2Int> GetPathToBestPlayout(TreeNode node)
 		{
-			if (node.IsTerminalNode) { return; }
+			List<Vector2Int> path = new List<Vector2Int>();
 
-			if (node._simulationResult != null) {
-				path.AddRange(node._simulationResult);
-				return;
+			while (!node.IsTerminalNode) {
+
+				if (node._simulationResult != null) {
+					path.AddRange(node._simulationResult);
+					break;
+				}
+
+				path.Add(node._bestChild.SelectedCellFromPatent.Value);
+
+				node = node._bestChild;
 			}
 
-			path.Add(node._bestChild.SelectedCellFromPatent.Value);
-
-			GetPathToBestPlayoutRecursively(node._bestChild, ref path);
+			return path;
 		}
 	}
 }
