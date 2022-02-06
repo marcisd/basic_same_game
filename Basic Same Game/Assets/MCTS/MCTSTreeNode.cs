@@ -44,7 +44,7 @@ namespace MSD.MCTS
 				MCTSTreeNode n = queue.Dequeue();
 
 				if (n.IsLeafNode) {
-					yield return node;
+					yield return n;
 				} else {
 					foreach (MCTSTreeNode child in n.Children) {
 						queue.Enqueue(child);

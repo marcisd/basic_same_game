@@ -665,6 +665,12 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  _onAutoCompleteAIStart:
+    m_PersistentCalls:
+      m_Calls: []
+  _onAutoCompleteAIFinish:
+    m_PersistentCalls:
+      m_Calls: []
   _onScoreLabelUpdate:
     m_PersistentCalls:
       m_Calls:
@@ -680,7 +686,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-  _searchIterations: 2500
+  _searchIterations: 2000
   _isTouchDisabled: 0
 --- !u!4 &403884594
 Transform:

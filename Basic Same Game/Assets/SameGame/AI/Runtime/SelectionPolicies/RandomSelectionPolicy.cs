@@ -1,6 +1,6 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 namespace MSD.BasicSameGame.AI
 {
@@ -9,8 +9,9 @@ namespace MSD.BasicSameGame.AI
 		public TreeNode Selection(IEnumerable<TreeNode> nonTerminalLeaves)
 		{
 			TreeNode[] leavesArr = nonTerminalLeaves.ToArray();
-			int rand = Random.Range(0, leavesArr.Length - 1);
-			return leavesArr[rand];
+			Random random = new Random();
+			int randomInt = random.Next(leavesArr.Length);
+			return leavesArr[randomInt];
 		}
 
 		MCTS.MCTSTreeNode MCTS.ISelectionPolicy.Selection(IEnumerable<MCTS.MCTSTreeNode> nonTerminalLeaves)

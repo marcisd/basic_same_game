@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -32,6 +33,8 @@ namespace MSD.BasicSameGame.View
 		[SerializeField] private UnityEvent _onGameStart;
 		[SerializeField] private UnityEvent _onGameOver;
 		[SerializeField] private UnityEvent _onAutoCompleteStart;
+		[SerializeField] private UnityEvent _onAutoCompleteAIStart;
+		[SerializeField] private UnityEvent _onAutoCompleteAIFinish;
 		[SerializeField] private UnityEvent<string> _onScoreLabelUpdate;
 
 		[Header("AI")]
@@ -42,6 +45,9 @@ namespace MSD.BasicSameGame.View
 
 		private SameGame _sameGame;
 		private GameScorer _scorer;
+		private IEnumerable<Vector2Int> _bestMoves;
+		private bool _isBestMovesRequested;
+		private bool _isBestMovesObtained;
 
 		private readonly Dictionary<Vector2Int, TileController> _activeTiles = new Dictionary<Vector2Int, TileController>();
 
@@ -67,11 +73,17 @@ namespace MSD.BasicSameGame.View
 
 		public void AutoComplete()
 		{
-			_onAutoCompleteStart.Invoke();
+			_isBestMovesRequested = true;
+			_isBestMovesObtained = false;
 			_isTouchDisabled = true;
-			BestMovesSearch mcts = new BestMovesSearch(_sameGame, _scorer);
-			IEnumerable<Vector2Int> moves = mcts.PerformSearch(_searchIterations);
-			StartCoroutine(Playout(moves));
+			_onAutoCompleteStart.Invoke();
+			_onAutoCompleteAIStart.Invoke();
+
+			Task.Run(() => {
+				BestMovesSearch mcts = new BestMovesSearch(_sameGame, _scorer);
+				_bestMoves = mcts.PerformSearch(_searchIterations);
+				_isBestMovesObtained = true;
+			});
 		}
 
 		private void Awake()
@@ -91,6 +103,16 @@ namespace MSD.BasicSameGame.View
 		private void Start()
 		{
 			GameStart();
+		}
+
+		private void Update()
+		{
+			if (_isBestMovesRequested && _isBestMovesObtained) {
+				_isBestMovesRequested = false;
+				_isBestMovesObtained = false;
+				_onAutoCompleteAIFinish.Invoke();
+				StartCoroutine(Playout(_bestMoves));
+			}
 		}
 
 		private void OnValidate()

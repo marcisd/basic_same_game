@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using Random = UnityEngine.Random;
+using Random = System.Random;
 
 namespace MSD.BasicSameGame.AI
 {
@@ -100,7 +100,8 @@ namespace MSD.BasicSameGame.AI
 		{
 			while (sameGame.HasValidMoves) {
 				Vector2Int[] matches = sameGame.GetMatchRepresentatives().Keys.ToArray();
-				int randomMatch = Random.Range(0, matches.Length - 1);
+				Random random = new Random();
+				int randomMatch = random.Next(matches.Length);
 				Vector2Int randomCell = matches[randomMatch];
 				yield return randomCell;
 				int matchesCount = sameGame.DestroyMatchingTilesFromCell(matches[randomMatch]);

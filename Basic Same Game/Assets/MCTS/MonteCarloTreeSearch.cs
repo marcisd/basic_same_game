@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Stopwatch = System.Diagnostics.Stopwatch;
-using Random = UnityEngine.Random;
+using Random = System.Random;
 
 namespace MSD.MCTS
 {
@@ -83,8 +83,9 @@ namespace MSD.MCTS
 			_expansionHeuristic.Expansion(leaf);
 
 			if (leaf.Degree > 0) {
-				int rand = Random.Range(0, leaf.Degree - 1);
-				child = leaf.Children[rand] as MCTSTreeNode;
+				Random random = new Random();
+				int randomInt = random.Next(leaf.Degree);
+				child = leaf.Children[randomInt] as MCTSTreeNode;
 				return true;
 			}
 			Debug.Log("Aborted expansion on an undesirable candidate.");
